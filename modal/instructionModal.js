@@ -12,7 +12,7 @@ const InstructionModel = sequelize.define("instruction", {
         },
       },
       description: {
-        type: DataTypes.TEXT,
+        type: DataTypes.ARRAY(DataTypes.STRING),
         allowNull: false,
         validate: {
           notEmpty: {

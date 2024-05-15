@@ -7,11 +7,37 @@ const createInstruction = asyncHandler(async (req, res, next) => {
     const { title, description } = req.body;
 
     if (
-        [title, description].some((field) => field?.trim() == "")
+        [title].some((field) => field?.trim() == "")
     ) {
         return next(
             new ErrorHandler(
                 "Please provide all necessary fields",
+                400
+            )
+        )
+    }
+    if(!description || description.length==0){
+        return next(
+            new ErrorHandler(
+                "Please provide description fields",
+                400
+            )
+        )
+    }
+
+     if(!Array.isArray(description)){
+        return next(
+            new ErrorHandler(
+                "description field should be in array",
+                400
+            )
+        )
+     }
+    const instructionData = await InstructionModel.findOne();
+    if (instructionData) {
+        return next(
+            new ErrorHandler(
+                "instruction data already created",
                 400
             )
         )
@@ -57,6 +83,7 @@ const updateInstruction = asyncHandler(async (req, res, next) => {
     try {
         // Find existing instruction data
         const instructionInfo = await InstructionModel.findOne();
+        console.log(instructionInfo);
 
         // If instruction data not found, return an error
         if (!instructionInfo) {
