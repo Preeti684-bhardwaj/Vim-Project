@@ -10,6 +10,7 @@ const sendEmail = require("../utils/sendEmail");
 const asyncHandler = require("../utils/asyncHandler");
 // const sendEmail = require("../utils/sendEmail.js")
 const jwt = require("jsonwebtoken");
+const { sequelize } = require("../database/dbconnection");
 
 const registerUser = asyncHandler(async (req, res, next) => {
   const { name, phone, email, password } = req.body;
@@ -60,6 +61,10 @@ const registerUser = asyncHandler(async (req, res, next) => {
     );
   }
 
+//   start transaction
+
+//   const transaction= await sequelize.transaction()
+
   const user = await UserModel.create({
     name,
     phone,
@@ -69,8 +74,9 @@ const registerUser = asyncHandler(async (req, res, next) => {
 
   const createdUser = await UserModel.findByPk(user.id, {
     attributes: {
-      exclude: ["password", "resetOtp", "resetOtpExpire"],
+      exclude: ["password"],
     },
+    // "resetOtp", "resetOtpExpire"
   });
 
   if (!createdUser) {
@@ -78,32 +84,39 @@ const registerUser = asyncHandler(async (req, res, next) => {
       new ErrorHandler("Something went wrong while registering the user", 500)
     );
   }
-  const otpGenerate = createdUser.generateOtp();
-  console.log(otpGenerate);
-  console.log(email);
-  createdUser.save({ validate: false });
-  const message = `Your One Time Password is ${otpGenerate}`;
-  console.log(message);
+//   const otpGenerate = createdUser.generateOtp();
+//   console.log(otpGenerate);
+//   console.log(email);
+//   createdUser.save({ validate: false });
+//   const message = `Your One Time Password is ${otpGenerate}`;
+//   console.log(message);
 
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: `Password Recovery`,
-      message,
-    });
+//   try {
+//     await sendEmail({
+//       email: user.email,
+//       subject: `Password Recovery`,
+//       message,
+//     });
 
-    res.status(200).json({
-      success: true,
-      message: `Email sent to ${user.email} successfully`,
-    });
-  } catch (error) {
-    user.resetOtp = null;
-    user.resetOtpExpire = null;
+//     await transaction.commit()
+//     res.status(200).json({
+//       success: true,
+//       message: `Email sent to ${user.email} successfully`,
+//     });
+res.status(200).json({
+          success: true,
+          message: "customer created",
+          createdUser
+        });
+//      } catch (error) {
+// //     user.resetOtp = null;
+// //     user.resetOtpExpire = null;
+// //     // await user.save();
+// //  await transaction.rollback()
 
-    await user.save();
 
-    return next(new ErrorHandler(error.message, 500));
-  }
+//     return next(new ErrorHandler(error.message, 500));
+//   }
 });
 
 const loginUser = asyncHandler(async (req, res, next) => {

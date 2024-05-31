@@ -53,7 +53,7 @@ const UserModel = sequelize.define("user", {
     agreePolicy:{
       type: DataTypes.BOOLEAN,
       // allowNull: false,
-      default:false
+      defaultValue:false
     }
   },
   {

@@ -56,7 +56,6 @@ const fs = require("fs")
 
 // Upload video file
 const uploadMusic = asyncHandler(async(req , res , next)=>{
-
   const audioFilePath = req?.files?.["music"]?.[0]?.filename;
   console.log(audioFilePath);
   if(audioFilePath){
