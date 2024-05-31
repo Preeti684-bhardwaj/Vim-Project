@@ -74,7 +74,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
 
   const createdUser = await UserModel.findByPk(user.id, {
     attributes: {
-      exclude: ["password"],
+      exclude: ["password", "resetOtp", "resetOtpExpire"],
     },
     // "resetOtp", "resetOtpExpire"
   });
