@@ -1,0 +1,23 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "987654",
+    "database": "vim_project",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "987654",
+    "database": "vim_project",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "default",
+    "password": "dX7JULNhH4Ie",
+    "database": "verceldb",
+    "host": "ep-blue-snowflake-a43gtqmp-pooler.us-east-1.aws.neon.tech",
+    "dialect": "postgres"
+  }
+}

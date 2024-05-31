@@ -57,14 +57,36 @@ const fs = require("fs")
 // Upload video file
 const uploadMusic = asyncHandler(async(req , res , next)=>{
 
-  const videoFilePath = req?.files?.["music"]?.[0]?.filename;
+  const audioFilePath = req?.files?.["music"]?.[0]?.filename;
+  console.log(audioFilePath);
+  if(audioFilePath){
+    const audioFile = await Music.create({
+      musicUrl:audioFilePath,
+      createdById: req.user.id
+    });
+    if(!audioFile){
+      return next(
+        new ErrorHandler(
+          "Something went wrong while creating the data", 
+          500
+        )
+      )
+    }
+  
+    return res.status(201).json({
+      success: true,
+      message: "Data Created Successfully",
+      audioFile,
+    });
+  }
 
-  console.log(req.files.music[0]);
+  const {angle ,gyrometer,acceleration}=req.body
+  // console.log(req.files.music[0]);
   console.log(req.user.id);
-
   const audio = await Music.create({
-    title:req.files.music[0].originalname,
-    musicFileUrl:req.files.music[0].filename,
+    angle:angle,
+    gyrometer:gyrometer,
+    acceration:acceleration,
     createdById: req.user.id
   });
 
@@ -81,7 +103,7 @@ const uploadMusic = asyncHandler(async(req , res , next)=>{
 
   return res.status(201).json({
     success: true,
-    message: "Video Data Created Successfully",
+    message: "Data Created Successfully",
     audio,
   });
 

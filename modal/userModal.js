@@ -17,6 +17,15 @@ const UserModel = sequelize.define("user", {
         }
       },
     },
+    email:{
+      type: DataTypes.STRING,
+      allowNull:false,
+      validate: {
+        notEmpty: {
+          msg: "email is Mandatory",
+        }
+      }
+    },
     phone: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -35,15 +44,17 @@ const UserModel = sequelize.define("user", {
           },
         },
       },
-    // type: {
-    //   type: DataTypes.STRING,
-    //   allowNull: false,
-    //   defaultValue: "salePerson",
-    // },
-    // organizationId: {
-    //   type: DataTypes.STRING,
-    //   allowNull: false,
-    // },
+    resetOtp: {
+      type:DataTypes.STRING
+    },
+    resetOtpExpire: {
+    type:DataTypes.DATE
+    },
+    agreePolicy:{
+      type: DataTypes.BOOLEAN,
+      // allowNull: false,
+      default:false
+    }
   },
   {
     hooks: {
@@ -58,6 +69,24 @@ const UserModel = sequelize.define("user", {
     },
   }
 );
+
+UserModel.prototype.generateOtp = function () {
+
+  // Define the possible characters for the OTP
+  const chars = '0123456789';
+  // Define the length of the OTP
+  const len = 6;
+  let otp = '';
+  // Generate the OTP
+  for (let i = 0; i < len; i++) {
+    otp += chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  this.resetOtp = otp
+  this.resetOtpExpire = Date.now() + 15 * 60 * 1000;
+
+  return otp;
+};
 
 UserModel.prototype.comparePassword = async function (password) {
     return await bcrypt.compare(password, this.password);
@@ -75,5 +104,6 @@ UserModel.prototype.generateAccessToken = function () {
     }
   )
 }
+
 
 module.exports = UserModel;

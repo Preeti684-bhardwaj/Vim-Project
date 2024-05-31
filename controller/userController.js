@@ -1,239 +1,229 @@
 const ErrorHandler = require("../utils/errorHandler");
-const UserModel = require("../modal/userModal")
-const {isValidEmail,isValidPhone ,isValidPassword, isValidLength} = require("../utils/validation");
+const UserModel = require("../modal/userModal");
+const {
+  isValidEmail,
+  isValidPhone,
+  isValidPassword,
+  isValidLength,
+} = require("../utils/validation");
+const sendEmail = require("../utils/sendEmail");
 const asyncHandler = require("../utils/asyncHandler");
 // const sendEmail = require("../utils/sendEmail.js")
-const jwt = require("jsonwebtoken")
-
+const jwt = require("jsonwebtoken");
 
 const registerUser = asyncHandler(async (req, res, next) => {
+  const { name, phone, email, password } = req.body;
 
-    const { name, phone , password } = req.body;
+  if ([name, phone, email, password].some((field) => field?.trim() == "")) {
+    return next(new ErrorHandler("Please provide all necessary fields", 400));
+  }
 
-    if(
-        [name,phone, password].some((field)=> field?.trim() == "")
-    ){
-        return next(
-            new ErrorHandler(
-                "Please provide all necessary fields" ,
-                 400
-            )
-        ) 
-    }
+  // check phone is valid
+  if (!isValidPhone(phone)) {
+    return next(new ErrorHandler("Invalid Phone Number", 400));
+  }
 
-    // check phone is valid
-    if (!isValidPhone(phone)) {
-        return next(new ErrorHandler(
-            "Invalid Phone Number", 
-            400
-            )
-        )
-    }
+  // check email is valid
 
-    // check password matches the regex
-    if(!isValidPassword(password)){
-        return next(
-            new ErrorHandler(
-                "Password Should contain atleast 8 character in which 1 Uppercase letter , 1 LowerCase letter , 1 Number and 1 Special character" ,
-                400
-            ) 
-        ) 
-    }
+  if (!isValidEmail(email)) {
+    return next(new ErrorHandler("Invalid email", 400));
+  }
 
-    if(!isValidLength(name)){
-        return next(
-            new ErrorHandler(
-                "name should be greater than 3 character and less than 30 character" ,
-                400
-            ) 
-        ) 
-    }
+  // check password matches the regex
+  if (!isValidPassword(password)) {
+    return next(
+      new ErrorHandler(
+        "Password Should contain atleast 8 character in which 1 Uppercase letter , 1 LowerCase letter , 1 Number and 1 Special character",
+        400
+      )
+    );
+  }
 
-    const isExistedUser = await UserModel.findOne({
-        where:{
-            phone:phone.trim(),
-        }
-    })
+  if (!isValidLength(name)) {
+    return next(
+      new ErrorHandler(
+        "name should be greater than 3 character and less than 30 character",
+        400
+      )
+    );
+  }
 
-    if(isExistedUser){
-        return next(
-            new ErrorHandler(
-                "user alredy been registered with this phone",
-                409
-            )
-        )
-    }
-  
-    const user = await UserModel.create({
-        name,
-        password,
-        phone
+  const isExistedUser = await UserModel.findOne({
+    where: {
+      phone: phone.trim(),
+    },
+  });
+
+  if (isExistedUser) {
+    return next(
+      new ErrorHandler("user alredy been registered with this phone", 409)
+    );
+  }
+
+  const user = await UserModel.create({
+    name,
+    phone,
+    email,
+    password,
+  });
+
+  const createdUser = await UserModel.findByPk(user.id, {
+    attributes: {
+      exclude: ["password", "resetOtp", "resetOtpExpire"],
+    },
+  });
+
+  if (!createdUser) {
+    return next(
+      new ErrorHandler("Something went wrong while registering the user", 500)
+    );
+  }
+  const otpGenerate = createdUser.generateOtp();
+  console.log(otpGenerate);
+  console.log(email);
+  createdUser.save({ validate: false });
+  const message = `Your One Time Password is ${otpGenerate}`;
+  console.log(message);
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: `Password Recovery`,
+      message,
     });
 
-    const createdUser = await UserModel.findByPk(user.id,{
-        attributes:{
-            exclude: ["password"]
-        }
-    })
+    res.status(200).json({
+      success: true,
+      message: `Email sent to ${user.email} successfully`,
+    });
+  } catch (error) {
+    user.resetOtp = null;
+    user.resetOtpExpire = null;
 
-    if(!createdUser){
-        return next(
-            new ErrorHandler(
-                "Something went wrong while registering the user", 
-                500
-            )
-        )
-    }
+    await user.save();
 
-    return res.status(201).json({
-        success: true,
-        message: "User Register Successfully",
-        data: createdUser
-    })
-})
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
 
-const loginUser = asyncHandler(async (req , res , next)=>{
+const loginUser = asyncHandler(async (req, res, next) => {
+  const { phone, password } = req.body;
 
-    const { phone, password } = req.body;
+  if (!phone || !password) {
+    return next(new ErrorHandler("Please Enter Phone & Password", 400));
+  }
 
-    if (!phone || !password) {
-        return next(
-            new ErrorHandler(
-                "Please Enter Phone & Password", 
-                400
-            )
-        );
-    }
+  const user = await UserModel.findOne({
+    where: { phone: phone.trim() },
+  });
 
-    const user = await UserModel.findOne({
-      where: { phone: phone.trim() },
+  if (!user) {
+    return next(new ErrorHandler("Invalid Phone or password", 401));
+  }
+
+  const isPasswordMatched = await user.comparePassword(password);
+
+  if (!isPasswordMatched) {
+    return next(new ErrorHandler("Invalid Phone or password", 401));
+  }
+
+  const accessToken = await user.generateAccessToken();
+
+  const loggedInUser = await UserModel.findByPk(user.id, {
+    attributes: {
+      exclude: ["password"],
+    },
+  });
+
+  return res.status(200).json({
+    success: true,
+    data: loggedInUser,
+    token: accessToken,
+  });
+});
+
+const forgotPassword = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new ErrorHandler("missing email id", 400));
+  }
+
+  if (!isValidEmail(email)) {
+    return next(new ErrorHandler("Invalid email Address", 400));
+  }
+
+  // Find the user by email
+  const user = await UserModel.findOne({
+    where: {
+      email: email.trim(),
+    },
+  });
+
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  // Get ResetPassword Token
+  const otp = user.getResetOtp();
+
+  await user.save();
+  const message = `Your One Time Password is ${otp}`;
+
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: `Password Recovery`,
+      message,
     });
 
-    if(!user){
-        return next(
-            new ErrorHandler(
-                "Invalid Phone or password", 
-                401
-            )
-        )
-    }
+    res.status(200).json({
+      success: true,
+      message: `Email sent to ${user.email} successfully`,
+    });
+  } catch (error) {
+    user.resetOtp = null;
+    user.resetOtpExpire = null;
 
-    const isPasswordMatched = await user.comparePassword(password);
+    await user.save();
 
-    if (!isPasswordMatched) {
-        return next(
-            new ErrorHandler(
-                "Invalid Phone or password",
-                 401
-            )
-        );
-    }
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
 
-    const accessToken = await user.generateAccessToken()
+const resetPassword = asyncHandler(async (req, res, next) => {
+  const { email, password, OTP } = req.body;
+  const userId = req.params.userId;
 
-    const loggedInUser = await UserModel.findByPk(user.id , {
-        attributes:{
-            exclude: ["password"]
-        }
-    })
-    
-    return res.status(200).json({
-        success: true,
-        data:loggedInUser,
-        token: accessToken,
-      });
-    
-})
+  const user = await UserModel.findByPk(userId);
 
-const forgotPassword = asyncHandler(async(req,res,next)=>{
-    try {
-    const { phone } = req.body
+  if (!user) {
+    return next(new ErrorHandler("user not found", 404));
+  }
 
-    if(!phone){
-        return next(
-            new ErrorHandler(
-                "phone is missing",
-                400
-            )
-        )
-    }
+  if (!password) {
+    return next(new ErrorHandler("Password is missing", 400));
+  }
 
-    const user = await UserModel.findOne({
-        where:{
-            phone: phone.trim()
-        }
-    })
+  user.password = password;
 
-    if(!user){
-        return next(
-            new ErrorHandler(
-                "user not found",
-                404
-            )
-        )
-    }
-    return res.status(200).send({"success":true,"message":"valid phone",userID:user.id});
-    } catch (error) {
-        return next(
-            new ErrorHandler(
-                "An error occurred",
-                error,
-                500
-            )
-        )
-    }
+  await user.save({ validate: false });
 
-})
+  const loggedInUser = await UserModel.findByPk(user.id, {
+    attributes: {
+      exclude: ["password"],
+    },
+  });
 
-const resetPassword = asyncHandler(async(req,res,next)=>{
+  return res.status(200).json({
+    success: true,
+    data: loggedInUser,
+  });
+});
 
-    const { password } = req.body
-    const userId = req.params.userId;
-
-    const user = await UserModel.findByPk(userId)
-
-    if(!user){
-        return next(
-            new ErrorHandler(
-                "user not found",
-                404
-            )
-        )
-    }
-
-    if(!password){
-        return next(
-            new ErrorHandler(
-                "Password is missing",
-                400
-            )
-        )
-    }
-
-    user.password = password
-
-    await user.save({validate: false})
-
-    const loggedInUser = await UserModel.findByPk(user.id , {
-        attributes:{
-            exclude: ["password"]
-        }
-    })
-    
-    return res.status(200).json({
-        success: true,
-        data:loggedInUser,
-      });
-     
-})
-
-
-
-
-
-module.exports = { 
-    registerUser, 
-    loginUser,
-    forgotPassword,
-    resetPassword
- };
+module.exports = {
+  registerUser,
+  loginUser,
+  forgotPassword,
+  resetPassword,
+};

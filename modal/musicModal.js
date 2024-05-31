@@ -13,19 +13,17 @@ const Music = sequelize.define('music', {
     //     },
     //     primaryKey: true
     // },
-    title: {
-        type: DataTypes.STRING,
-        validate: {
-            notEmpty: {
-                args: true,
-                msg: 'Title must not be empty'
-            }
-        },
-        allowNull: false,
+    musicUrl:{
+        type:DataTypes.STRING
     },
-    musicFileUrl:{
-        type: DataTypes.STRING,
-        allowNull: false
+    angle: {
+        type: DataTypes.JSONB
+    },
+    gyrometer: {
+        type: DataTypes.JSONB
+    },
+    acceleration:{
+        type: DataTypes.JSONB
     },
     // videoData:{
     //     type: DataTypes.JSON,
