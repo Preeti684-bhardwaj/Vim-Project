@@ -118,6 +118,71 @@ const registerUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+// signUp customer
+const signUp = asyncHandler(async (req, res, next) => {
+  const { phone, otp, termPolicy } = req.body;
+
+  // Validate the termPolicy
+  if (typeof termPolicy !== 'boolean' || !termPolicy) {
+    return res
+      .status(400)
+      .json({
+        success: false,
+        message: "You must agree to the terms and conditions.",
+      });
+  }
+
+  // Validate the OTP
+  if (!otp) {
+    return res
+      .status(400)
+      .json({ success: false, message: "OTP is required." });
+  }
+
+  try {
+    const user = await UserModel.findOne({ where: { phone } });
+    console.log(user);
+    if (!user) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "User not found or invalid details.",
+        });
+    }
+
+    // Check OTP validity
+    if (user.resetOtp !== otp) {
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
+    // if(user.resetOtpExpire < Date.now()){
+    //     return res.status(400).json({ success: false, message: 'expired OTP.' });
+    // }
+
+    // Update user details
+    user.agreePolicy = termPolicy;
+    user.resetOtp = null;
+    user.resetOtpExpire = null;
+    await user.save();
+
+    res.status(201).json({
+      success: true,
+      message: "User data",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+      },
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
+  }
+});
+
+// login customer
 const loginUser = asyncHandler(async (req, res, next) => {
   const { phone, password } = req.body;
 
@@ -235,6 +300,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
 
 module.exports = {
   registerUser,
+  signUp,
   loginUser,
   forgotPassword,
   resetPassword,
