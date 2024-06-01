@@ -155,9 +155,9 @@ const signUp = asyncHandler(async (req, res, next) => {
     if (user.resetOtp !== otp) {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
-    // if(user.resetOtpExpire < Date.now()){
-    //     return res.status(400).json({ success: false, message: 'expired OTP.' });
-    // }
+    if(user.resetOtpExpire < Date.now()){
+        return res.status(400).json({ success: false, message: 'expired OTP.' });
+    }
 
     // Update user details
     user.agreePolicy = termPolicy;
