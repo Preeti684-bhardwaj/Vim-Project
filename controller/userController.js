@@ -61,9 +61,9 @@ const registerUser = asyncHandler(async (req, res, next) => {
     );
   }
 
-//   start transaction
+  //   start transaction
 
-//   const transaction= await sequelize.transaction()
+  //   const transaction= await sequelize.transaction()
 
   const user = await UserModel.create({
     name,
@@ -84,39 +84,38 @@ const registerUser = asyncHandler(async (req, res, next) => {
       new ErrorHandler("Something went wrong while registering the user", 500)
     );
   }
-//   const otpGenerate = createdUser.generateOtp();
-//   console.log(otpGenerate);
-//   console.log(email);
-//   createdUser.save({ validate: false });
-//   const message = `Your One Time Password is ${otpGenerate}`;
-//   console.log(message);
+  const otpGenerate = createdUser.generateOtp();
+  console.log(otpGenerate);
+  console.log(email);
+  createdUser.save({ validate: false });
+  const message = `Your One Time Password is ${otpGenerate}`;
+  console.log(message);
 
-//   try {
-//     await sendEmail({
-//       email: user.email,
-//       subject: `Password Recovery`,
-//       message,
-//     });
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: `Password Recovery`,
+      message,
+    });
 
-//     await transaction.commit()
-//     res.status(200).json({
-//       success: true,
-//       message: `Email sent to ${user.email} successfully`,
-//     });
-res.status(200).json({
-          success: true,
-          message: "customer created",
-          createdUser
-        });
-//      } catch (error) {
-// //     user.resetOtp = null;
-// //     user.resetOtpExpire = null;
-// //     // await user.save();
-// //  await transaction.rollback()
+    //     await transaction.commit()
+    res.status(200).json({
+      success: true,
+      message: `Email sent to ${user.email} successfully`,
+    });
+    // res.status(200).json({
+    //           success: true,
+    //           message: "customer created",
+    //           createdUser
+    //         });
+  } catch (error) {
+    //     user.resetOtp = null;
+    //     user.resetOtpExpire = null;
+    //     // await user.save();
+    // //  await transaction.rollback()
 
-
-//     return next(new ErrorHandler(error.message, 500));
-//   }
+    return next(new ErrorHandler(error.message, 500));
+  }
 });
 
 const loginUser = asyncHandler(async (req, res, next) => {
