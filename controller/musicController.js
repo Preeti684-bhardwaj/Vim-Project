@@ -85,7 +85,7 @@ const uploadMusic = asyncHandler(async(req , res , next)=>{
   const audio = await Music.create({
     angle:angle,
     gyrometer:gyrometer,
-    acceration:acceleration,
+    acceleration:acceleration,
     createdById: req.user.id
   });
 
