@@ -74,7 +74,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
 
   const createdUser = await UserModel.findByPk(user.id, {
     attributes: {
-      exclude: ["password", "resetOtp", "resetOtpExpire"],
+      exclude: ["password", "resetOtp", "resetOtpExpire","isVerified"],
     },
     // "resetOtp", "resetOtpExpire"
   });
@@ -160,10 +160,12 @@ const signUp = asyncHandler(async (req, res, next) => {
     }
 
     // Update user details
+    user.isVerified = true;
     user.agreePolicy = termPolicy;
     user.resetOtp = null;
     user.resetOtpExpire = null;
     await user.save();
+
 
     res.status(201).json({
       success: true,
@@ -198,6 +200,10 @@ const loginUser = asyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("Invalid Phone or password", 401));
   }
 
+  if (!user.isVerified) {
+    return next(new ErrorHandler("Please verify your OTP before logging in", 403));
+  }
+
   const isPasswordMatched = await user.comparePassword(password);
 
   if (!isPasswordMatched) {
@@ -208,7 +214,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
 
   const loggedInUser = await UserModel.findByPk(user.id, {
     attributes: {
-      exclude: ["password"],
+      exclude: ["password", "resetOtp", "resetOtpExpire","isVerified"],
     },
   });
 
