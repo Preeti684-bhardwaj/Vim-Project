@@ -55,68 +55,77 @@ const registerUser = asyncHandler(async (req, res, next) => {
     },
   });
 
+  let user;
+
   if (isExistedUser) {
-    return next(
-      new ErrorHandler("user alredy been registered with this phone", 409)
-    );
-  }
+    // User exists, update OTP
+    user = isExistedUser;
+    const otpGenerate = user.generateOtp();
+    user.resetOtp = otpGenerate;
+    user.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
+    await user.save({ validate: false });
 
-  //   start transaction
+    const message = `Your One Time Password is ${otpGenerate}`;
 
-  //   const transaction= await sequelize.transaction()
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: `One Time Password (OTP)`,
+        message,
+      });
 
-  const user = await UserModel.create({
-    name,
-    phone,
-    email,
-    password,
-  });
-
-  const createdUser = await UserModel.findByPk(user.id, {
-    attributes: {
-      exclude: ["password", "resetOtp", "resetOtpExpire","isVerified"],
-    },
-    // "resetOtp", "resetOtpExpire"
-  });
-
-  if (!createdUser) {
-    return next(
-      new ErrorHandler("Something went wrong while registering the user", 500)
-    );
-  }
-  const otpGenerate = createdUser.generateOtp();
-  console.log(otpGenerate);
-  console.log(email);
-  createdUser.save({ validate: false });
-  const message = `Your One Time Password is ${otpGenerate}`;
-  console.log(message);
-
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: `Password Recovery`,
-      message,
+      return res.status(200).json({
+        success: true,
+        message: `OTP sent to ${user.email} successfully`,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  } else {
+    // User does not exist, create a new user
+    user = await UserModel.create({
+      name,
+      phone,
+      email,
+      password,
     });
 
-    //     await transaction.commit()
-    res.status(200).json({
-      success: true,
-      message: `Email sent to ${user.email} successfully`,
+    const createdUser = await UserModel.findByPk(user.id, {
+      attributes: {
+        exclude: ["password", "resetOtp", "resetOtpExpire", "isVerified"],
+      },
     });
-    // res.status(200).json({
-    //           success: true,
-    //           message: "customer created",
-    //           createdUser
-    //         });
-  } catch (error) {
-    //     user.resetOtp = null;
-    //     user.resetOtpExpire = null;
-    //     // await user.save();
-    // //  await transaction.rollback()
 
-    return next(new ErrorHandler(error.message, 500));
+    if (!createdUser) {
+      return next(
+        new ErrorHandler("Something went wrong while registering the user", 500)
+      );
+    }
+
+    const otpGenerate = createdUser.generateOtp();
+    createdUser.resetOtp = otpGenerate;
+    createdUser.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
+    await createdUser.save({ validate: false });
+
+    const message = `Your One Time Password is ${otpGenerate}`;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: `One Time Password (OTP)`,
+        message,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: `OTP sent to ${user.email} successfully`,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
   }
 });
+
 
 // signUp customer
 const signUp = asyncHandler(async (req, res, next) => {
