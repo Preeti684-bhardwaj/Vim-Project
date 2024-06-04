@@ -209,14 +209,15 @@ const loginUser = asyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("Invalid Phone or password", 401));
   }
 
-  if (!user.isVerified) {
-    return next(new ErrorHandler("Please verify your OTP before logging in", 403));
-  }
-
+  
   const isPasswordMatched = await user.comparePassword(password);
-
+  
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid Phone or password", 401));
+  }
+  
+  if (!user.isVerified) {
+    return next(new ErrorHandler("Please verify your OTP before logging in", 403));
   }
 
   const accessToken = await user.generateAccessToken();
