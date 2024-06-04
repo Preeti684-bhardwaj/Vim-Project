@@ -206,16 +206,16 @@ const loginUser = asyncHandler(async (req, res, next) => {
   });
 
   if (!user) {
-    return next(new ErrorHandler("Invalid Phone or password", 401));
+    return next(new ErrorHandler("user does not exist", 404));
   }
 
   
   const isPasswordMatched = await user.comparePassword(password);
   
   if (!isPasswordMatched) {
-    return next(new ErrorHandler("Invalid Phone or password", 401));
+    return next(new ErrorHandler("Invalid password", 401));
   }
-  
+
   if (!user.isVerified) {
     return next(new ErrorHandler("Please verify your OTP before logging in", 403));
   }
