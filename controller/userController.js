@@ -52,19 +52,20 @@ const registerUser = asyncHandler(async (req, res, next) => {
   const isExistedUser = await UserModel.findOne({
     where: {
       phone: phone.trim(),
+      email:email.trim()
     },
   });
 
   let user;
 
   if (isExistedUser) {
-    // User exists, update OTP
+    // User exists , update OTP
     user = isExistedUser;
     const otpGenerate = user.generateOtp();
     user.resetOtp = otpGenerate;
     user.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
     await user.save({ validate: false });
-
+    
     const message = `Your One Time Password is ${otpGenerate}`;
 
     try {
