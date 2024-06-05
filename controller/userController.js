@@ -82,7 +82,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     // Check if email already exists
     if (existingUserByEmail) {
       // Email exists but phone does not match
-      return next(new ErrorHandler("Phone number does not match the existing user", 400));
+      return next(new ErrorHandler("Email already in use", 400));
     }
 
     // Create a new user if no existing user is found
