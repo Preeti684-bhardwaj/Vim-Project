@@ -52,9 +52,16 @@ const registerUser = asyncHandler(async (req, res, next) => {
   const isExistedUser = await UserModel.findOne({
     where: {
       phone: phone.trim(),
-      email:email.trim()
     },
   });
+  if(isExistedUser.email!==email){
+    return next(
+      new ErrorHandler(
+        "Wrong email of existing user",
+        400
+      )
+    );
+  }
 
   let user;
 
@@ -65,7 +72,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     user.resetOtp = otpGenerate;
     user.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
     await user.save({ validate: false });
-    
+
     const message = `Your One Time Password is ${otpGenerate}`;
 
     try {
