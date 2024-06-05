@@ -11,7 +11,6 @@ const asyncHandler = require("../utils/asyncHandler");
 // const sendEmail = require("../utils/sendEmail.js")
 const jwt = require("jsonwebtoken");
 const { sequelize } = require("../database/dbconnection");
-
 const registerUser = asyncHandler(async (req, res, next) => {
   const { name, phone, email, password } = req.body;
 
@@ -19,31 +18,31 @@ const registerUser = asyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("Please provide all necessary fields", 400));
   }
 
-  // check phone is valid
+  // Check if phone is valid
   if (!isValidPhone(phone)) {
     return next(new ErrorHandler("Invalid Phone Number", 400));
   }
 
-  // check email is valid
-
+  // Check if email is valid
   if (!isValidEmail(email)) {
     return next(new ErrorHandler("Invalid email", 400));
   }
 
-  // check password matches the regex
+  // Check if password matches the regex
   if (!isValidPassword(password)) {
     return next(
       new ErrorHandler(
-        "Password Should contain atleast 8 character in which 1 Uppercase letter , 1 LowerCase letter , 1 Number and 1 Special character",
+        "Password should contain at least 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character",
         400
       )
     );
   }
 
+  // Check if name length is valid
   if (!isValidLength(name)) {
     return next(
       new ErrorHandler(
-        "name should be greater than 3 character and less than 30 character",
+        "Name should be greater than 3 characters and less than 30 characters",
         400
       )
     );
@@ -54,51 +53,45 @@ const registerUser = asyncHandler(async (req, res, next) => {
       phone: phone.trim(),
     },
   });
-  if(isExistedUser.email!==email){
-    return next(
-      new ErrorHandler(
-        "Wrong email of existing user",
-        400
-      )
-    );
-  }
-
-  let user;
 
   if (isExistedUser) {
-    // User exists , update OTP
-    user = isExistedUser;
-    const otpGenerate = user.generateOtp();
-    user.resetOtp = otpGenerate;
-    user.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
-    await user.save({ validate: false });
+    // Check if the email matches the existing user's email
+    if (isExistedUser.email !== email) {
+      return next(new ErrorHandler("Email does not match the existing user", 400));
+    }
+
+    // User exists and email matches, update OTP
+    const otpGenerate = isExistedUser.generateOtp();
+    isExistedUser.resetOtp = otpGenerate;
+    isExistedUser.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
+    await isExistedUser.save({ validate: false });
 
     const message = `Your One Time Password is ${otpGenerate}`;
 
     try {
       await sendEmail({
-        email: user.email,
+        email: isExistedUser.email,
         subject: `One Time Password (OTP)`,
         message,
       });
 
       return res.status(200).json({
         success: true,
-        message: `OTP sent to ${user.email} successfully`,
+        message: `OTP sent to ${isExistedUser.email} successfully`,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   } else {
     // User does not exist, create a new user
-    user = await UserModel.create({
+    const newUser = await UserModel.create({
       name,
       phone,
       email,
       password,
     });
 
-    const createdUser = await UserModel.findByPk(user.id, {
+    const createdUser = await UserModel.findByPk(newUser.id, {
       attributes: {
         exclude: ["password", "resetOtp", "resetOtpExpire", "isVerified"],
       },
@@ -119,21 +112,20 @@ const registerUser = asyncHandler(async (req, res, next) => {
 
     try {
       await sendEmail({
-        email: user.email,
+        email: createdUser.email,
         subject: `One Time Password (OTP)`,
         message,
       });
 
       res.status(200).json({
         success: true,
-        message: `OTP sent to ${user.email} successfully`,
+        message: `OTP sent to ${createdUser.email} successfully`,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   }
 });
-
 
 // signUp customer
 const signUp = asyncHandler(async (req, res, next) => {
