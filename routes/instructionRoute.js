@@ -10,6 +10,6 @@ router.route("/create-instruction").post(createInstruction)
 
 router.route("/get-instruction").get(getInstruction)
 
-router.route("/update-instruction").post(updateInstruction)
+router.route("/update-instruction").put(updateInstruction)
 
 module.exports = router

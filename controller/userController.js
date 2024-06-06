@@ -54,6 +54,10 @@ const registerUser = asyncHandler(async (req, res, next) => {
 
     // Check if phone already exists
     if (existingUserByPhone) {
+      if (existingUserByPhone.isVerified) {
+        return next(new ErrorHandler("User already exists and is verified", 400));
+      }
+  
       // Check if email matches
       if (existingUserByPhone.email !== email) {
         return next(new ErrorHandler("Email does not match the existing user", 400));
@@ -109,13 +113,15 @@ const registerUser = asyncHandler(async (req, res, next) => {
     await createdUser.save({ validate: false });
 
     const message = `Your One Time Password is ${otpGenerate}`;
-
+try{
     await sendEmail({
       email: createdUser.email,
       subject: `One Time Password (OTP)`,
       message,
     });
-
+  }catch(err){
+    res.status(404).send({success:false,message:err.message || "something went wrong while sending otp email"})
+  }
     res.status(200).json({
       success: true,
       message: `OTP sent to ${createdUser.email} successfully`,
@@ -239,32 +245,36 @@ const loginUser = asyncHandler(async (req, res, next) => {
 const forgotPassword = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
 
+  // Validate input fields
   if (!email) {
-    return next(new ErrorHandler("missing email id", 400));
+    return next(new ErrorHandler("Missing email id", 400));
   }
 
   if (!isValidEmail(email)) {
-    return next(new ErrorHandler("Invalid email Address", 400));
+    return next(new ErrorHandler("Invalid email address", 400));
   }
-
-  // Find the user by email
-  const user = await UserModel.findOne({
-    where: {
-      email: email.trim(),
-    },
-  });
-
-  if (!user) {
-    return next(new ErrorHandler("User not found", 404));
-  }
-
-  // Get ResetPassword Token
-  const otp = user.getResetOtp();
-
-  await user.save();
-  const message = `Your One Time Password is ${otp}`;
 
   try {
+    // Find the user by email
+    const user = await UserModel.findOne({
+      where: {
+        email: email.trim(),
+      },
+    });
+
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+
+    // Get ResetPassword Token
+    const otp = user.generateOtp(); // Assuming you have a method to generate the OTP
+    user.resetOtp = otp;
+    user.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
+
+    await user.save({ validate: false });
+
+    const message = `Your One Time Password is ${otp}`;
+
     await sendEmail({
       email: user.email,
       subject: `Password Recovery`,
@@ -273,46 +283,64 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: `Email sent to ${user.email} successfully`,
+      message: `OTP sent to ${user.email} successfully`,
+      userId: user.id,
     });
   } catch (error) {
     user.resetOtp = null;
     user.resetOtpExpire = null;
-
-    await user.save();
+    await user.save({ validate: false });
 
     return next(new ErrorHandler(error.message, 500));
   }
 });
 
 const resetPassword = asyncHandler(async (req, res, next) => {
-  const { email, password, OTP } = req.body;
+  const { password, otp } = req.body;
   const userId = req.params.userId;
 
-  const user = await UserModel.findByPk(userId);
-
-  if (!user) {
-    return next(new ErrorHandler("user not found", 404));
+  // Validate input fields
+  if (!password || !otp) {
+    return next(new ErrorHandler("Missing required fields: password or OTP", 400));
   }
 
-  if (!password) {
-    return next(new ErrorHandler("Password is missing", 400));
+  try {
+    // Find the user by ID
+    const user = await UserModel.findByPk(userId);
+
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+
+    // Verify the OTP
+    if (user.resetOtp !== otp.trim()){
+      return next(new ErrorHandler("Invalid OTP", 400));
+    }
+    if (user.resetOtpExpire < Date.now()) {
+      return next(new ErrorHandler("expired OTP", 400));
+    }
+
+    // Update the user's password and clear OTP fields
+    user.password = password;
+    user.resetOtp = null;
+    user.resetOtpExpire = null;
+
+    await user.save({ validate: true });
+
+    // Exclude password from the response
+    const updatedUser = await UserModel.findByPk(user.id, {
+      attributes: {
+        exclude: ["password"],
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Password updated for ${updatedUser.email}`,
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
   }
-
-  user.password = password;
-
-  await user.save({ validate: false });
-
-  const loggedInUser = await UserModel.findByPk(user.id, {
-    attributes: {
-      exclude: ["password"],
-    },
-  });
-
-  return res.status(200).json({
-    success: true,
-    data: loggedInUser,
-  });
 });
 
 module.exports = {

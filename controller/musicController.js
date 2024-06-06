@@ -1,10 +1,9 @@
-const { title } = require("process");
+const { log } = require("console");
 const Music = require("../modal/musicModal.js");
 const asyncHandler = require("../utils/asyncHandler.js");
 const ErrorHandler = require("../utils/errorHandler.js");
-const fs = require("fs")
+const fs = require("fs");
 // const {deleteObjectsFromS3,uploadFileToS3} = require("../utils/aws.js")
-
 
 // CREATING UPLOADMEDIA DATA
 // const createVideoData = asyncHandler(async (req, res, next) => {
@@ -41,7 +40,7 @@ const fs = require("fs")
 //   if(!videoData){
 //     return next(
 //       new ErrorHandler(
-//         "Something went wrong while creating the data", 
+//         "Something went wrong while creating the data",
 //         500
 //       )
 //     )
@@ -54,176 +53,254 @@ const fs = require("fs")
 //   });
 // })
 
-// Upload video file
-const uploadMusic = asyncHandler(async(req , res , next)=>{
+// Define the combination-to-audio map with .wav files
+const axisCombinationAudioMap = {
+  horizontal_x_negative_vertical_y_negative:
+    "horizontal_x_negative_vertical_y_negative.wav",
+  horizontal_x_negative_vertical_y_positive:
+    "horizontal_x_negative_vertical_y_positive.wav",
+  horizontal_x_positive_horizontal_x_negative:
+    "horizontal_x_positive_horizontal_x_negative.wav",
+  horizontal_x_positive_vertical_y_negative:
+    "horizontal_x_positive_vertical_y_negative.wav",
+  horizontal_x_positive_vertical_y_positive:
+    "horizontal_x_positive_vertical_y_positive.wav",
+  vertical_y_positive_vertical_y_negative:
+    "vertical_y_positive_vertical_y_negative.wav",
+  // Add other combinations as needed
+};
+
+// // Upload audio file
+// const uploadMusic = asyncHandler(async (req, res, next) => {
+//   // upload mp3 file
+//   const audioFilePath = req?.files?.["music"]?.[0]?.filename;
+//   console.log(req.files["music"]?.[0])
+//   console.log(audioFilePath);
+//   if (audioFilePath) {
+//     const audioFile = await Music.create({
+//       musicUrl: audioFilePath,
+//       createdById: req.user.id,
+//     });
+//     if (!audioFile) {
+//       return next(
+//         new ErrorHandler("Something went wrong while creating the data", 500)
+//       );
+//     }
+
+//     return res.status(201).json({
+//       success: true,
+//       message: "Data Created Successfully",
+//       audioFile,
+//     });
+//   }
+
+//   // upload from req.body
+//   const { angle, gyrometer, acceleration, topTwoAxis } = req.body;
+//   // console.log(req.files.music[0]);
+//   console.log(req.user.id);
+
+// // upload from topTwoAxis===================
+//   // Handle topTwoAxis case
+//   if (topTwoAxis) {
+//     if (!Array.isArray(topTwoAxis) || topTwoAxis.length !== 2) {
+//       return next(
+//         new ErrorHandler("topTwoAxis must be an array of two strings", 400)
+//       );
+//     }
+//     const axisCombinationKey = topTwoAxis.join("_");
+//     const audioFileUrl = axisCombinationAudioMap[axisCombinationKey];
+//     console.log(axisCombinationKey);
+//     console.log(audioFileUrl);
+//     if (!audioFileUrl) {
+//       return next(new ErrorHandler("Invalid axis combination", 400));
+//     }
+//     const musicData = await Music.create({
+//       topTwoAxis,
+//       musicUrl: audioFileUrl,
+//       createdById: req.user.id,
+//     });
+
+//     if (!musicData) {
+//       return next(
+//         new ErrorHandler("Something went wrong while creating the data", 500)
+//       );
+//     }
+//     return res.status(201).json({
+//       success: true,
+//       message: "Data Created Successfully",
+//       musicData,
+//     });
+//   }
+
+//   // upload from parameters
+//   const audio = await Music.create({
+//     angle: angle,
+//     gyrometer: gyrometer,
+//     acceleration: acceleration,
+//     createdById: req.user.id,
+//   });
+//   if (!audio) {
+//     return next(
+//       new ErrorHandler("Something went wrong while creating the data", 500)
+//     );
+//   }
+
+//   return res.status(201).json({
+//     success: true,
+//     message: "Data Created Successfully",
+//     audio,
+//   });
+// });
+
+const uploadMusic = asyncHandler(async (req, res, next) => {
+  // If records exist, we will append new data based on the provided input
   const audioFilePath = req?.files?.["music"]?.[0]?.filename;
   console.log(audioFilePath);
-  if(audioFilePath){
+  if (audioFilePath) {
     const audioFile = await Music.create({
-      musicUrl:audioFilePath,
-      createdById: req.user.id
+      musicUrl: audioFilePath,
+      createdById: req.user.id,
     });
-    if(!audioFile){
+    if (!audioFile) {
       return next(
-        new ErrorHandler(
-          "Something went wrong while creating the data", 
-          500
-        )
-      )
+        new ErrorHandler("Something went wrong while creating the data", 500)
+      );
     }
-  
+      // Exclude certain fields from the musicData object
+      const filteredaudioFileData = {
+        id: audioFile.id,
+        musicUrl: audioFile.musicUrl,
+        createdById: audioFile.createdById,
+        updatedAt: audioFile.updatedAt,
+        createdAt: audioFile.createdAt,
+      };
     return res.status(201).json({
       success: true,
       message: "Data Created Successfully",
-      audioFile,
+      filteredaudioFileData,
     });
   }
 
-  const {angle ,gyrometer,acceleration}=req.body
-  // console.log(req.files.music[0]);
+  const { angle, gyrometer, acceleration, topTwoAxis } = req.body;
   console.log(req.user.id);
-  const audio = await Music.create({
-    angle:angle,
-    gyrometer:gyrometer,
-    acceleration:acceleration,
-    createdById: req.user.id
-  });
 
-//   const videoData = await Video.findByPk(video.video_id)
+  // Handle topTwoAxis case
+  if (topTwoAxis) {
+    if (!Array.isArray(topTwoAxis) || topTwoAxis.length !== 2) {
+      return next(
+        new ErrorHandler("topTwoAxis must be an array of two strings", 400)
+      );
+    }
+    const axisCombinationKey = topTwoAxis.join("_");
+    const audioFileUrl = axisCombinationAudioMap[axisCombinationKey];
+    console.log(axisCombinationKey);
+    console.log(audioFileUrl);
+    if (!audioFileUrl) {
+      return next(new ErrorHandler("Invalid axis combination", 400));
+    }
+    const musicData = await Music.create({
+      topTwoAxis,
+      musicUrl: audioFileUrl,
+      createdById: req.user.id,
+    });
 
-  if(!audio){
-    return next(
-      new ErrorHandler(
-        "Something went wrong while creating the data", 
-        500
-      )
-    )
+    if (!musicData) {
+      return next(
+        new ErrorHandler("Something went wrong while creating the data", 500)
+      );
+    }
+    // Exclude certain fields from the musicData object
+    const filteredMusicData = {
+      id: musicData.id,
+      topTwoAxis: musicData.topTwoAxis,
+      musicUrl: musicData.musicUrl,
+      createdById: musicData.createdById,
+      updatedAt: musicData.updatedAt,
+      createdAt: musicData.createdAt,
+    };
+
+    return res.status(201).json({
+      success: true,
+      message: "Data Created Successfully",
+      musicData: filteredMusicData,
+    });
   }
+
+  // Upload from parameters
+  const audio = await Music.create({
+    angle: angle,
+    gyrometer: gyrometer,
+    acceleration: acceleration,
+    createdById: req.user.id,
+  });
+  if (!audio) {
+    return next(
+      new ErrorHandler("Something went wrong while creating the data", 500)
+    );
+  }
+    // Exclude certain fields from the musicData object
+    const filteredAudioData = {
+      id: audio.id,
+      angle: audio.angle,
+      gyrometer: audio.gyrometer,
+      acceleration: audio.acceleration,
+      createdById: audio.createdById,
+      updatedAt: audio.updatedAt,
+      createdAt:audio.createdAt,
+    };
+
 
   return res.status(201).json({
     success: true,
     message: "Data Created Successfully",
-    audio,
+    filteredAudioData,
   });
-
-//   const userAudio = await Music.findOne({
-//     where:{
-//     //   video_id: req.params.id,
-//       createdById: req.user.id
-//     }
-//   })
-
-//   if(!userAudio){
-//     return next(
-//       new ErrorHandler(
-//         "user not found",
-//          404
-//       )
-//     )
-//   }
-
-  // const videoLocalFilePath = req?.files?.["video"]?.[0]?.path
-  // if(!videoLocalFilePath){
-  //   return next(
-  //     new ErrorHandler(
-  //       "Missing Video File , Provide video file",
-  //        400
-  //     )
-  //   )
-  // }
-
-  // const uploadFileOnAwsS3 = await uploadFileToS3(videoLocalFilePath)
-
-  // if(!uploadFileOnAwsS3){
-  //   return next(
-  //     new ErrorHandler(
-  //       "Something went wrong while uploding file on Aws s3 cloud",
-  //        500
-  //     )
-  //   )
-  // }
-
-  // return res.status(201).json({
-  //   success: true,
-  //   message: "Video Uploaded Successfully",
-  //   videoUrl: uploadFileOnAwsS3
-  // })
-
-//   if(!videoFilePath){
-//     return next(
-//       new ErrorHandler(
-//         "Missing audio File , Provide audio file",
-//          400
-//       )
-//     )
-//   }
-
-//   return res.status(201).json({
-//     success:true,
-//     message:"music Uploaded Successfully",
-//     videoUrl: videoFilePath
-//   })
-})
-
-// get all created Video Data 
+});
+// get all created Video Data
 const getAllMusic = asyncHandler(async (req, res, next) => {
-
-  const musicResult = await Music.findAll(
-    {
-      where:{
-        createdById: req.user.id
-      }
-    }
-  );
+  const musicResult = await Music.findAll({
+    where: {
+      createdById: req.user.id,
+    },
+  });
 
   return res.status(200).json({
     success: true,
-    musicResult
-  })
-})
+    musicResult,
+  });
+});
 
 // get specific Video by Id
 const getMusicById = asyncHandler(async (req, res, next) => {
+  const { id } = req.params;
 
-  const {id} = req.params
-  
-  if(!id) {
-    return next(
-      new ErrorHandler(
-        "audio_id is Missing" ,
-         400
-      )
-    )
+  if (!id) {
+    return next(new ErrorHandler("audio_id is Missing", 400));
   }
 
   const musicData = await Music.findOne({
-    where: { 
+    where: {
       id: id,
-    }
-  })
-  
+    },
+  });
+
   if (!musicData) {
-    return next(
-      new ErrorHandler(
-        "Video data not Found",
-        404
-      )
-    )
+    return next(new ErrorHandler("Video data not Found", 404));
   }
 
   return res.status(200).json({
     success: true,
     message: "Data Send Successfully",
-    data: musicData
-  })
-})
+    data: musicData,
+  });
+});
 
 // update UploadMultiMedia Data
 // const updateVideoData = asyncHandler( async (req, res, next)=>{
 //   // take id and check video exist or not
-//   // take parameter frm user 
+//   // take parameter frm user
 //   // validate the field videoSelectedFile , videoData , title
-//   // update the data 
+//   // update the data
 //   // verify successfully updated or not
 //   // successfully updated send respond to user
 
@@ -253,7 +330,7 @@ const getMusicById = asyncHandler(async (req, res, next) => {
 //     video.videoFileUrl &&
 //     video?.videoFileUrl.length > 0 &&
 //     data?.videoFileUrl &&
-//     Array.isArray(data?.videoFileUrl) && 
+//     Array.isArray(data?.videoFileUrl) &&
 //     data?.videoFileUrl.length > 0
 //   ) {
 //     filterVideoFile = video?.videoFileUrl.filter(
@@ -415,14 +492,12 @@ const getMusicById = asyncHandler(async (req, res, next) => {
 //   })
 // })
 
-
-
-module.exports = { 
-  uploadMusic, 
-//   createVideoData , 
-  getAllMusic, 
+module.exports = {
+  uploadMusic,
+  //   createVideoData ,
+  getAllMusic,
   getMusicById,
-//   updateVideoData,
-//   deleteMusicData,
-//   updateVideoShared
-}
+  //   updateVideoData,
+  //   deleteMusicData,
+  //   updateVideoShared
+};
