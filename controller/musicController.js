@@ -180,7 +180,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     });
   }
 
-  const { angle, gyrometer, acceleration, topTwoAxis } = req.body;
+  const { angle, gyrometer, acceleration, topTwoAxis ,fileName} = req.body;
   console.log(req.user.id);
 
   // Handle topTwoAxis case
@@ -202,6 +202,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     }
     const musicData = await Music.create({
       topTwoAxis,
+      fileName:fileName,
       musicUrl: audioFileUrl,
       createdById: req.user.id,
     });
@@ -214,6 +215,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     const filteredMusicData = {
       id: musicData.id,
       topTwoAxis: musicData.topTwoAxis,
+      fileName:musicData.fileName,
       musicUrl: musicData.musicUrl,
       createdById: musicData.createdById,
       updatedAt: musicData.updatedAt,
@@ -231,6 +233,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     angle: angle,
     gyrometer: gyrometer,
     acceleration: acceleration,
+    fileName:fileName,
     createdById: req.user.id,
   });
   if (!audio) {
