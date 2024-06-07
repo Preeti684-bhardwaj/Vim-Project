@@ -1,4 +1,3 @@
-const { log } = require("console");
 const Music = require("../modal/musicModal.js");
 const asyncHandler = require("../utils/asyncHandler.js");
 const ErrorHandler = require("../utils/errorHandler.js");
@@ -166,14 +165,14 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
         new ErrorHandler("Something went wrong while creating the data", 500)
       );
     }
-      // Exclude certain fields from the musicData object
-      const filteredaudioFileData = {
-        id: audioFile.id,
-        musicUrl: audioFile.musicUrl,
-        createdById: audioFile.createdById,
-        updatedAt: audioFile.updatedAt,
-        createdAt: audioFile.createdAt,
-      };
+    // Exclude certain fields from the musicData object
+    const filteredaudioFileData = {
+      id: audioFile.id,
+      musicUrl: audioFile.musicUrl,
+      createdById: audioFile.createdById,
+      updatedAt: audioFile.updatedAt,
+      createdAt: audioFile.createdAt,
+    };
     return res.status(201).json({
       success: true,
       message: "Data Created Successfully",
@@ -185,6 +184,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
   console.log(req.user.id);
 
   // Handle topTwoAxis case
+  // Handle topTwoAxis case
   if (topTwoAxis) {
     if (!Array.isArray(topTwoAxis) || topTwoAxis.length !== 2) {
       return next(
@@ -192,9 +192,11 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
       );
     }
     const axisCombinationKey = topTwoAxis.join("_");
-    const audioFileUrl = axisCombinationAudioMap[axisCombinationKey];
-    console.log(axisCombinationKey);
-    console.log(audioFileUrl);
+    const reversedAxisCombinationKey = [...topTwoAxis].reverse().join("_");
+    let audioFileUrl = axisCombinationAudioMap[axisCombinationKey];
+    if (!audioFileUrl) {
+      audioFileUrl = axisCombinationAudioMap[reversedAxisCombinationKey];
+    }
     if (!audioFileUrl) {
       return next(new ErrorHandler("Invalid axis combination", 400));
     }
@@ -209,7 +211,6 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
         new ErrorHandler("Something went wrong while creating the data", 500)
       );
     }
-    // Exclude certain fields from the musicData object
     const filteredMusicData = {
       id: musicData.id,
       topTwoAxis: musicData.topTwoAxis,
@@ -222,10 +223,9 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     return res.status(201).json({
       success: true,
       message: "Data Created Successfully",
-      musicData: filteredMusicData,
+      data: filteredMusicData,
     });
   }
-
   // Upload from parameters
   const audio = await Music.create({
     angle: angle,
@@ -238,17 +238,16 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
       new ErrorHandler("Something went wrong while creating the data", 500)
     );
   }
-    // Exclude certain fields from the musicData object
-    const filteredAudioData = {
-      id: audio.id,
-      angle: audio.angle,
-      gyrometer: audio.gyrometer,
-      acceleration: audio.acceleration,
-      createdById: audio.createdById,
-      updatedAt: audio.updatedAt,
-      createdAt:audio.createdAt,
-    };
-
+  // Exclude certain fields from the musicData object
+  const filteredAudioData = {
+    id: audio.id,
+    angle: audio.angle,
+    gyrometer: audio.gyrometer,
+    acceleration: audio.acceleration,
+    createdById: audio.createdById,
+    updatedAt: audio.updatedAt,
+    createdAt: audio.createdAt,
+  };
 
   return res.status(201).json({
     success: true,
