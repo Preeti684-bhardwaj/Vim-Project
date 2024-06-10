@@ -66,6 +66,50 @@ const axisCombinationAudioMap = {
     "horizontal_x_positive_vertical_y_positive.wav",
   vertical_y_positive_vertical_y_negative:
     "vertical_y_positive_vertical_y_negative.wav",
+  horizontal_x_positive_45_degree_positive:
+    "horizontal_x_positive_45_degree_positive.wav",
+  horizontal_x_positive_45_degree_negative:
+    "horizontal_x_positive_45_degree_negative.wav",
+  horizontal_x_positive_135_degree_positive:
+    "horizontal_x_positive_135_degree_positive.wav",
+  horizontal_x_positive_135_degree_negative:
+    "horizontal_x_positive_135_degree_negative.wav",
+  horizontal_x_negative_45_degree_positive:
+    "horizontal_x_negative_45_degree_positive.wav",
+  horizontal_x_negative_45_degree_negative:
+    "horizontal_x_negative_45_degree_negative.wav",
+  horizontal_x_negative_135_degree_positive:
+    "horizontal_x_negative_135_degree_positive.wav",
+  horizontal_x_negative_135_degree_negative:
+    "horizontal_x_negative_135_degree_negative.wav",
+  vertical_y_positive_45_degree_positive:
+    "vertical_y_positive_45_degree_positive.wav",
+  vertical_y_positive_45_degree_negative:
+    "vertical_y_positive_45_degree_negative.wav",
+  vertical_y_positive_135_degree_positive:
+    "vertical_y_positive_135_degree_positive.wav",
+  vertical_y_positive_135_degree_negative:
+    "vertical_y_positive_135_degree_negative.wav",
+  vertical_y_negative_45_degree_positive:
+    "vertical_y_negative_45_degree_positive.wav",
+  vertical_y_negative_45_degree_negative:
+    "vertical_y_negative_45_degree_negative.wav",
+  vertical_y_negative_135_degree_positive:
+    "vertical_y_negative_135_degree_positive.wav",
+  vertical_y_negative_135_degree_negative:
+    "vertical_y_negative_135_degree_negative.wav",
+  _45_degree_positive_45_degree_negative:
+    "_45_degree_positive_45_degree_negative.wav",
+  _45_degree_positive_135_degree_positive:
+    "_45_degree_positive_135_degree_positive.wav",
+  _45_degree_positive_135_degree_negative:
+    "_45_degree_positive_135_degree_negative.wav",
+  _45_degree_negative_135_degree_positive:
+    "_45_degree_negative_135_degree_positive.wav",
+  _45_degree_negative_135_degree_negative:
+    "_45_degree_negative_135_degree_negative.wav",
+  _135_degree_positive_135_degree_negative:
+    "_135_degree_positive_135_degree_negative",
   // Add other combinations as needed
 };
 
@@ -180,7 +224,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     });
   }
 
-  const { angle, gyrometer, acceleration, topTwoAxis ,fileName} = req.body;
+  const { angle, gyrometer, acceleration, topTwoAxis, fileName } = req.body;
   console.log(req.user.id);
 
   // Handle topTwoAxis case
@@ -202,7 +246,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     }
     const musicData = await Music.create({
       topTwoAxis,
-      fileName:fileName,
+      fileName: fileName,
       musicUrl: audioFileUrl,
       createdById: req.user.id,
     });
@@ -215,7 +259,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     const filteredMusicData = {
       id: musicData.id,
       topTwoAxis: musicData.topTwoAxis,
-      fileName:musicData.fileName,
+      fileName: musicData.fileName,
       musicUrl: musicData.musicUrl,
       createdById: musicData.createdById,
       updatedAt: musicData.updatedAt,
@@ -233,7 +277,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     angle: angle,
     gyrometer: gyrometer,
     acceleration: acceleration,
-    fileName:fileName,
+    fileName: fileName,
     createdById: req.user.id,
   });
   if (!audio) {
