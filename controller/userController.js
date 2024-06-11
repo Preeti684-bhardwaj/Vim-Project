@@ -106,25 +106,9 @@ const registerUser = asyncHandler(async (req, res, next) => {
     if (!createdUser) {
       return next(new ErrorHandler("Something went wrong while registering the user", 500));
     }
-
-    const otpGenerate = createdUser.generateOtp();
-    createdUser.resetOtp = otpGenerate;
-    createdUser.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
-    await createdUser.save({ validate: false });
-
-    const message = `Your One Time Password is ${otpGenerate}`;
-try{
-    await sendEmail({
-      email: createdUser.email,
-      subject: `One Time Password (OTP)`,
-      message,
-    });
-  }catch(err){
-    res.status(404).send({success:false,message:err.message || "something went wrong while sending otp email"})
-  }
     res.status(200).json({
       success: true,
-      message: `OTP sent to ${createdUser.email} successfully`,
+      message: 'user registered successfully',
     });
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
