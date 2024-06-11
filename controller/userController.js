@@ -343,10 +343,66 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
+
+const resendOtp = asyncHandler(async (req, res, next) => {
+  const { phone } = req.body;
+
+  // Validate input fields
+  if (!phone) {
+    return next(new ErrorHandler("Missing phone", 400));
+  }
+
+  if (!isValidPhone(phone)) {
+    return next(new ErrorHandler("Invalid phone", 400));
+  }
+
+  try {
+    // Find the user by email
+    const user = await UserModel.findOne({
+      where: {
+        phone: phone.trim(),
+      },
+    });
+
+    if (!user) {
+      return next(new ErrorHandler("User not found", 404));
+    }
+
+    // Get ResetPassword Token
+    const otp = user.generateOtp(); // Assuming you have a method to generate the OTP
+    user.resetOtp = otp;
+    user.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
+
+    await user.save({ validate: false });
+
+    const message = `Your One Time Password is ${otp}`;
+
+    await sendEmail({
+      email: user.email,
+      subject: `Password Recovery`,
+      message,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `OTP sent to ${user.email} successfully`,
+      userId: user.id,
+    });
+  } catch (error) {
+    user.resetOtp = null;
+    user.resetOtpExpire = null;
+    await user.save({ validate: false });
+
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+
 module.exports = {
   registerUser,
   signUp,
   loginUser,
   forgotPassword,
   resetPassword,
+  resendOtp
 };
