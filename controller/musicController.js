@@ -242,14 +242,29 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     console.log("axisCombinationKey:", axisCombinationKey);
     console.log("reversedAxisCombinationKey:", reversedAxisCombinationKey);
   
-    // Check if the audio file URL exists in the map for either combination
-    let audioFileUrl = axisCombinationAudioMap[axisCombinationKey] || axisCombinationAudioMap[reversedAxisCombinationKey];
-    if (!audioFileUrl) {
-      audioFileUrl = axisCombinationAudioMap[reversedAxisCombinationKey];
-    }
-  
-    if (!audioFileUrl) {
-      return next(new ErrorHandler("Invalid axis combination", 400));
+    // Check if the topTwoAxis combination already exists for the user
+    const existingMusic = await Music.findOne({
+      where: {
+        topTwoAxis: trimmedTopTwoAxis,
+        createdById: req.user.id,
+      },
+    });
+
+    let audioFileUrl;
+    if (existingMusic) {
+      // If it exists, find a different audio file URL
+      const availableAudioUrls = Object.values(axisCombinationAudioMap).filter(url => url !== existingMusic.musicUrl);
+      if (availableAudioUrls.length > 0) {
+        audioFileUrl = availableAudioUrls[0];
+      } else {
+        return next(new ErrorHandler("No available audio files for the given combination", 400));
+      }
+    } else {
+      // If it doesn't exist, use the original logic
+      audioFileUrl = axisCombinationAudioMap[axisCombinationKey] || axisCombinationAudioMap[reversedAxisCombinationKey];
+      if (!audioFileUrl) {
+        return next(new ErrorHandler("Invalid axis combination", 400));
+      }
     }
   
     try {
@@ -287,7 +302,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
       );
     }
   }
-
+  
   
   // Upload from parameters
   const audio = await Music.create({
