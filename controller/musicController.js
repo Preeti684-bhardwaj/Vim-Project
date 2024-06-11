@@ -325,6 +325,7 @@ const getAllMusic = asyncHandler(async (req, res, next) => {
     where: {
       createdById: req.user.id,
     },
+    order: [['createdAt', 'DESC']],
   });
 
   return res.status(200).json({
