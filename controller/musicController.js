@@ -68,47 +68,47 @@ const axisCombinationAudioMap = {
     "vertical_y_positive_vertical_y_negative.wav",
   horizontal_x_positive_45_degree_positive:
     "horizontal_x_positive_45_degree_positive.wav",
-  horizontal_x_positive_45_degree_negative:
+  horizontal_x_positive__45_degree_negative:
     "horizontal_x_positive_45_degree_negative.wav",
-  horizontal_x_positive_135_degree_positive:
+  horizontal_x_positive__135_degree_positive:
     "horizontal_x_positive_135_degree_positive.wav",
-  horizontal_x_positive_135_degree_negative:
+  horizontal_x_positive__135_degree_negative:
     "horizontal_x_positive_135_degree_negative.wav",
-  horizontal_x_negative_45_degree_positive:
+  horizontal_x_negative__45_degree_positive:
     "horizontal_x_negative_45_degree_positive.wav",
-  horizontal_x_negative_45_degree_negative:
+  horizontal_x_negative__45_degree_negative:
     "horizontal_x_negative_45_degree_negative.wav",
-  horizontal_x_negative_135_degree_positive:
+  horizontal_x_negative__135_degree_positive:
     "horizontal_x_negative_135_degree_positive.wav",
-  horizontal_x_negative_135_degree_negative:
+  horizontal_x_negative__135_degree_negative:
     "horizontal_x_negative_135_degree_negative.wav",
-  vertical_y_positive_45_degree_positive:
+  vertical_y_positive__45_degree_positive:
     "vertical_y_positive_45_degree_positive.wav",
-  vertical_y_positive_45_degree_negative:
+  vertical_y_positive__45_degree_negative:
     "vertical_y_positive_45_degree_negative.wav",
-  vertical_y_positive_135_degree_positive:
+  vertical_y_positive__135_degree_positive:
     "vertical_y_positive_135_degree_positive.wav",
-  vertical_y_positive_135_degree_negative:
+  vertical_y_positive__135_degree_negative:
     "vertical_y_positive_135_degree_negative.wav",
-  vertical_y_negative_45_degree_positive:
+  vertical_y_negative__45_degree_positive:
     "vertical_y_negative_45_degree_positive.wav",
-  vertical_y_negative_45_degree_negative:
+  vertical_y_negative__45_degree_negative:
     "vertical_y_negative_45_degree_negative.wav",
-  vertical_y_negative_135_degree_positive:
+  vertical_y_negative__135_degree_positive:
     "vertical_y_negative_135_degree_positive.wav",
-  vertical_y_negative_135_degree_negative:
+  vertical_y_negative__135_degree_negative:
     "vertical_y_negative_135_degree_negative.wav",
-  _45_degree_positive_45_degree_negative:
+  _45_degree_positive__45_degree_negative:
     "_45_degree_positive_45_degree_negative.wav",
-  _45_degree_positive_135_degree_positive:
+  _45_degree_positive__135_degree_positive:
     "_45_degree_positive_135_degree_positive.wav",
-  _45_degree_positive_135_degree_negative:
+  _45_degree_positive__135_degree_negative:
     "_45_degree_positive_135_degree_negative.wav",
-  _45_degree_negative_135_degree_positive:
+  _45_degree_negative__135_degree_positive:
     "_45_degree_negative_135_degree_positive.wav",
-  _45_degree_negative_135_degree_negative:
+  _45_degree_negative__135_degree_negative:
     "_45_degree_negative_135_degree_negative.wav",
-  _135_degree_positive_135_degree_negative:
+  _135_degree_positive__135_degree_negative:
     "_135_degree_positive_135_degree_negative",
   // Add other combinations as needed
 };
@@ -226,8 +226,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
 
   const { angle, gyrometer, acceleration, topTwoAxis, fileName } = req.body;
   console.log(req.user.id);
-
-  // Handle topTwoAxis case
+  
   // Handle topTwoAxis case
   if (topTwoAxis) {
     if (!Array.isArray(topTwoAxis) || topTwoAxis.length !== 2) {
@@ -235,43 +234,61 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
         new ErrorHandler("topTwoAxis must be an array of two strings", 400)
       );
     }
-    const axisCombinationKey = topTwoAxis.join("_");
-    const reversedAxisCombinationKey = [...topTwoAxis].reverse().join("_");
-    let audioFileUrl = axisCombinationAudioMap[axisCombinationKey];
+  
+    const trimmedTopTwoAxis = topTwoAxis.map(axis => axis.trim());
+    const axisCombinationKey = trimmedTopTwoAxis.join("_");
+    const reversedAxisCombinationKey = trimmedTopTwoAxis.slice().reverse().join("_");
+    
+    console.log("axisCombinationKey:", axisCombinationKey);
+    console.log("reversedAxisCombinationKey:", reversedAxisCombinationKey);
+  
+    // Check if the audio file URL exists in the map for either combination
+    let audioFileUrl = axisCombinationAudioMap[axisCombinationKey] || axisCombinationAudioMap[reversedAxisCombinationKey];
     if (!audioFileUrl) {
       audioFileUrl = axisCombinationAudioMap[reversedAxisCombinationKey];
     }
+  
     if (!audioFileUrl) {
       return next(new ErrorHandler("Invalid axis combination", 400));
     }
-    const musicData = await Music.create({
-      topTwoAxis,
-      fileName: fileName,
-      musicUrl: audioFileUrl,
-      createdById: req.user.id,
-    });
+  
+    try {
+      const musicData = await Music.create({
+        topTwoAxis: trimmedTopTwoAxis,
+        fileName: fileName,
+        musicUrl: audioFileUrl,
+        createdById: req.user.id,
+      });
 
-    if (!musicData) {
+      if (!musicData) {
+        return next(
+          new ErrorHandler("Something went wrong while creating the data", 500)
+        );
+      }
+
+      const filteredMusicData = {
+        id: musicData.id,
+        topTwoAxis: musicData.topTwoAxis,
+        fileName: musicData.fileName,
+        musicUrl: musicData.musicUrl,
+        createdById: musicData.createdById,
+        updatedAt: musicData.updatedAt,
+        createdAt: musicData.createdAt,
+      };
+
+      return res.status(201).json({
+        success: true,
+        message: "Data Created Successfully",
+        data: filteredMusicData,
+      });
+    } catch (error) {
       return next(
         new ErrorHandler("Something went wrong while creating the data", 500)
       );
     }
-    const filteredMusicData = {
-      id: musicData.id,
-      topTwoAxis: musicData.topTwoAxis,
-      fileName: musicData.fileName,
-      musicUrl: musicData.musicUrl,
-      createdById: musicData.createdById,
-      updatedAt: musicData.updatedAt,
-      createdAt: musicData.createdAt,
-    };
-
-    return res.status(201).json({
-      success: true,
-      message: "Data Created Successfully",
-      data: filteredMusicData,
-    });
   }
+
+  
   // Upload from parameters
   const audio = await Music.create({
     angle: angle,
