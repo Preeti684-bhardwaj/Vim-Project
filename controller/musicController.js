@@ -109,7 +109,7 @@ const axisCombinationAudioMap = {
   _45_degree_negative__135_degree_negative:
     "_45_degree_negative_135_degree_negative.wav",
   _135_degree_positive__135_degree_negative:
-    "_135_degree_positive_135_degree_negative",
+    "_135_degree_positive_135_degree_negative.wav",
   // Add other combinations as needed
 };
 
