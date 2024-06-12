@@ -4,9 +4,9 @@ const asyncHandler = require("../utils/asyncHandler.js");
 const ErrorHandler = require("../utils/errorHandler").ErrorHandler;
 const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
-const ffprobePath = require("@ffprobe-installer/ffprobe").path;
+const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 
-ffmpeg.setFfprobePath(ffprobePath);
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 // const {deleteObjectsFromS3,uploadFileToS3} = require("../utils/aws.js")
 
@@ -122,17 +122,30 @@ const axisCombinationAudioMap = {
 };
 
 // Function to get audio duration
+// const getAudioDuration = async (filePath) => {
+//   try {
+//     const metadata = await MusicMetadataReader.parseFile(filePath);
+//     const duration = metadata.format.duration;
+//     return duration;
+//   } catch (error) {
+//     throw new ErrorHandler("Error while extracting audio duration", 500);
+//   }
+// };
+
+// Function to get audio duration using ffmpeg
 const getAudioDuration = (filePath) => {
   return new Promise((resolve, reject) => {
-      ffmpeg.ffprobe(filePath, (err, metadata) => {
-          if (err) {
-              reject(err);
-          } else {
-              resolve(metadata.format.duration);
-          }
-      });
+    ffmpeg.ffprobe(filePath, (err, metadata) => {
+      if (err) {
+        console.error(`Error in ffprobe: ${err.message}`);
+        reject(err);
+      } else {
+        resolve(metadata.format.duration);
+      }
+    });
   });
 };
+
 
 // const saveFalseData = async (data, errorMessage) => {
 //   try {
