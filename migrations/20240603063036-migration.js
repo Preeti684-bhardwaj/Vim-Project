@@ -36,6 +36,11 @@ module.exports = {
       type: Sequelize.STRING,
       // allowNull: false
     });
+     // Adding new column to music model
+     await queryInterface.addColumn("music", "duration", {
+      type: Sequelize.FLOAT,
+      // allowNull: false
+    });
   },
 
   async down(queryInterface, Sequelize) {

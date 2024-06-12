@@ -2,7 +2,7 @@ const { DataTypes } = require("sequelize");
 const { sequelize } = require("../database/dbconnection.js");
 const User = require("./userModal.js");
 
-const Music = sequelize.define("music", {
+const FalseMusic = sequelize.define("falsemusic", {
   id: {
     type: DataTypes.UUID,
     primaryKey: true,
@@ -32,7 +32,7 @@ const Music = sequelize.define("music", {
   }
 });
 
-Music.belongsTo(User, {
+FalseMusic.belongsTo(User, {
   foreignKey: "createdById",
   as: "createdByRes",
 });
@@ -42,4 +42,4 @@ Music.belongsTo(User, {
 //     as: "feedback"
 // });
 
-module.exports = Music;
+module.exports = FalseMusic;

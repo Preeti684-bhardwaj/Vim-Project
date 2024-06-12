@@ -29,6 +29,6 @@ app.use("/api/v1/instruction",instructionRouter)
 app.use("/api/v1/audio", musicRouter)
 
 // Middleware for error
-app.use(errorMiddleware)
+app.use(errorMiddleware);
 
 module.exports = app
