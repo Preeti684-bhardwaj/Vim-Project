@@ -58,66 +58,66 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 //   });
 // })
 
-// Define the combination-to-audio map with .wav files
+// Define the combination-to-audio map with .mp3 files
 
 
 const axisCombinationAudioMap = {
   horizontal_x_negative_vertical_y_negative:
-    "horizontal_x_negative_vertical_y_negative.wav",
+    "horizontal_x_negative_vertical_y_negative.mp3",
   horizontal_x_negative_vertical_y_positive:
-    "horizontal_x_negative_vertical_y_positive.wav",
+    "horizontal_x_negative_vertical_y_positive.mp3",
   horizontal_x_positive_horizontal_x_negative:
-    "horizontal_x_positive_horizontal_x_negative.wav",
+    "horizontal_x_positive_horizontal_x_negative.mp3",
   horizontal_x_positive_vertical_y_negative:
-    "horizontal_x_positive_vertical_y_negative.wav",
+    "horizontal_x_positive_vertical_y_negative.mp3",
   horizontal_x_positive_vertical_y_positive:
-    "horizontal_x_positive_vertical_y_positive.wav",
+    "horizontal_x_positive_vertical_y_positive.mp3",
   vertical_y_positive_vertical_y_negative:
-    "vertical_y_positive_vertical_y_negative.wav",
+    "vertical_y_positive_vertical_y_negative.mp3",
   horizontal_x_positive_45_degree_positive:
-    "horizontal_x_positive_45_degree_positive.wav",
+    "horizontal_x_positive_45_degree_positive.mp3",
   horizontal_x_positive__45_degree_negative:
-    "horizontal_x_positive_45_degree_negative.wav",
+    "horizontal_x_positive_45_degree_negative.mp3",
   horizontal_x_positive__135_degree_positive:
-    "horizontal_x_positive_135_degree_positive.wav",
+    "horizontal_x_positive_135_degree_positive.mp3",
   horizontal_x_positive__135_degree_negative:
-    "horizontal_x_positive_135_degree_negative.wav",
+    "horizontal_x_positive_135_degree_negative.mp3",
   horizontal_x_negative__45_degree_positive:
-    "horizontal_x_negative_45_degree_positive.wav",
+    "horizontal_x_negative_45_degree_positive.mp3",
   horizontal_x_negative__45_degree_negative:
-    "horizontal_x_negative_45_degree_negative.wav",
+    "horizontal_x_negative_45_degree_negative.mp3",
   horizontal_x_negative__135_degree_positive:
-    "horizontal_x_negative_135_degree_positive.wav",
+    "horizontal_x_negative_135_degree_positive.mp3",
   horizontal_x_negative__135_degree_negative:
-    "horizontal_x_negative_135_degree_negative.wav",
+    "horizontal_x_negative_135_degree_negative.mp3",
   vertical_y_positive__45_degree_positive:
-    "vertical_y_positive_45_degree_positive.wav",
+    "vertical_y_positive_45_degree_positive.mp3",
   vertical_y_positive__45_degree_negative:
-    "vertical_y_positive_45_degree_negative.wav",
+    "vertical_y_positive_45_degree_negative.mp3",
   vertical_y_positive__135_degree_positive:
-    "vertical_y_positive_135_degree_positive.wav",
+    "vertical_y_positive_135_degree_positive.mp3",
   vertical_y_positive__135_degree_negative:
-    "vertical_y_positive_135_degree_negative.wav",
+    "vertical_y_positive_135_degree_negative.mp3",
   vertical_y_negative__45_degree_positive:
-    "vertical_y_negative_45_degree_positive.wav",
+    "vertical_y_negative_45_degree_positive.mp3",
   vertical_y_negative__45_degree_negative:
-    "vertical_y_negative_45_degree_negative.wav",
+    "vertical_y_negative_45_degree_negative.mp3",
   vertical_y_negative__135_degree_positive:
-    "vertical_y_negative_135_degree_positive.wav",
+    "vertical_y_negative_135_degree_positive.mp3",
   vertical_y_negative__135_degree_negative:
-    "vertical_y_negative_135_degree_negative.wav",
+    "vertical_y_negative_135_degree_negative.mp3",
   _45_degree_positive__45_degree_negative:
-    "_45_degree_positive_45_degree_negative.wav",
+    "_45_degree_positive_45_degree_negative.mp3",
   _45_degree_positive__135_degree_positive:
-    "_45_degree_positive_135_degree_positive.wav",
+    "_45_degree_positive_135_degree_positive.mp3",
   _45_degree_positive__135_degree_negative:
-    "_45_degree_positive_135_degree_negative.wav",
+    "_45_degree_positive_135_degree_negative.mp3",
   _45_degree_negative__135_degree_positive:
-    "_45_degree_negative_135_degree_positive.wav",
+    "_45_degree_negative_135_degree_positive.mp3",
   _45_degree_negative__135_degree_negative:
-    "_45_degree_negative_135_degree_negative.wav",
+    "_45_degree_negative_135_degree_negative.mp3",
   _135_degree_positive__135_degree_negative:
-    "_135_degree_positive_135_degree_negative.wav",
+    "_135_degree_positive_135_degree_negative.mp3",
   // Add other combinations as needed
 };
 
