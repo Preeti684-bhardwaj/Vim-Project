@@ -4,10 +4,9 @@ const asyncHandler = require("../utils/asyncHandler.js");
 const ErrorHandler = require("../utils/errorHandler").ErrorHandler;
 const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
-const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
+const ffprobePath = require("@ffprobe-installer/ffprobe").path;
 
-// Set the path to the ffmpeg executable
-ffmpeg.setFfmpegPath(ffmpegPath);
+ffmpeg.setFfprobePath(ffprobePath);
 
 // const {deleteObjectsFromS3,uploadFileToS3} = require("../utils/aws.js")
 
