@@ -29,17 +29,21 @@ const registerUser = asyncHandler(async (req, res, next) => {
   }
 
   if (!isValidPassword(password)) {
-    return next(new ErrorHandler(
-      "Password should contain at least 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character",
-      400
-    ));
+    return next(
+      new ErrorHandler(
+        "Password should contain at least 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character",
+        400
+      )
+    );
   }
 
   if (!isValidLength(name)) {
-    return next(new ErrorHandler(
-      "Name should be greater than 3 characters and less than 30 characters",
-      400
-    ));
+    return next(
+      new ErrorHandler(
+        "Name should be greater than 3 characters and less than 30 characters",
+        400
+      )
+    );
   }
 
   try {
@@ -55,12 +59,16 @@ const registerUser = asyncHandler(async (req, res, next) => {
     // Check if phone already exists
     if (existingUserByPhone) {
       if (existingUserByPhone.isVerified) {
-        return next(new ErrorHandler("User already exists and is verified", 400));
+        return next(
+          new ErrorHandler("User already exists and is verified", 400)
+        );
       }
-  
+
       // Check if email matches
       if (existingUserByPhone.email !== email) {
-        return next(new ErrorHandler("Email does not match the existing user", 400));
+        return next(
+          new ErrorHandler("Email does not match the existing user", 400)
+        );
       }
 
       // Update OTP for existing user
@@ -104,15 +112,22 @@ const registerUser = asyncHandler(async (req, res, next) => {
     });
 
     if (!createdUser) {
-      return next(new ErrorHandler("Something went wrong while registering the user", 500));
+      return next(
+        new ErrorHandler("Something went wrong while registering the user", 500)
+      );
     }
     res.status(200).json({
       success: true,
-      message: 'user registered successfully',
+      message: "user registered successfully",
     });
   } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      return next(new ErrorHandler("User already exists with the provided phone or email", 409));
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return next(
+        new ErrorHandler(
+          "User already exists with the provided phone or email",
+          409
+        )
+      );
     }
     return next(new ErrorHandler(error.message, 500));
   }
@@ -123,13 +138,11 @@ const signUp = asyncHandler(async (req, res, next) => {
   const { phone, otp, termPolicy } = req.body;
 
   // Validate the termPolicy
-  if (typeof termPolicy !== 'boolean' || !termPolicy) {
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: "You must agree to the terms and conditions.",
-      });
+  if (typeof termPolicy !== "boolean" || !termPolicy) {
+    return res.status(400).json({
+      success: false,
+      message: "You must agree to the terms and conditions.",
+    });
   }
 
   // Validate the OTP
@@ -143,20 +156,18 @@ const signUp = asyncHandler(async (req, res, next) => {
     const user = await UserModel.findOne({ where: { phone } });
     console.log(user);
     if (!user) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "User not found or invalid details.",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "User not found or invalid details.",
+      });
     }
 
     // Check OTP validity
     if (user.resetOtp !== otp) {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
-    if(user.resetOtpExpire < Date.now()){
-        return res.status(400).json({ success: false, message: 'expired OTP.' });
+    if (user.resetOtpExpire < Date.now()) {
+      return res.status(400).json({ success: false, message: "expired OTP." });
     }
 
     // Update user details
@@ -165,7 +176,6 @@ const signUp = asyncHandler(async (req, res, next) => {
     user.resetOtp = null;
     user.resetOtpExpire = null;
     await user.save();
-
 
     res.status(201).json({
       success: true,
@@ -200,22 +210,23 @@ const loginUser = asyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("user does not exist", 404));
   }
 
-  
   const isPasswordMatched = await user.comparePassword(password);
-  
+
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid password", 401));
   }
 
   if (!user.isVerified) {
-    return next(new ErrorHandler("Please verify your OTP before logging in", 403));
+    return next(
+      new ErrorHandler("Please verify your OTP before logging in", 403)
+    );
   }
 
   const accessToken = await user.generateAccessToken();
 
   const loggedInUser = await UserModel.findByPk(user.id, {
     attributes: {
-      exclude: ["password", "resetOtp", "resetOtpExpire","isVerified"],
+      exclude: ["password", "resetOtp", "resetOtpExpire", "isVerified"],
     },
   });
 
@@ -285,7 +296,9 @@ const resetPassword = asyncHandler(async (req, res, next) => {
 
   // Validate input fields
   if (!password || !otp) {
-    return next(new ErrorHandler("Missing required fields: password or OTP", 400));
+    return next(
+      new ErrorHandler("Missing required fields: password or OTP", 400)
+    );
   }
 
   try {
@@ -297,7 +310,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
     }
 
     // Verify the OTP
-    if (user.resetOtp !== otp.trim()){
+    if (user.resetOtp !== otp.trim()) {
       return next(new ErrorHandler("Invalid OTP", 400));
     }
     if (user.resetOtpExpire < Date.now()) {
@@ -326,7 +339,6 @@ const resetPassword = asyncHandler(async (req, res, next) => {
     return next(new ErrorHandler(error.message, 500));
   }
 });
-
 
 const resendOtp = asyncHandler(async (req, res, next) => {
   const { phone } = req.body;
@@ -370,7 +382,7 @@ const resendOtp = asyncHandler(async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: `OTP sent to ${user.email} successfully`,
-      email:user.email,
+      email: user.email,
       userId: user.id,
     });
   } catch (error) {
@@ -382,8 +394,8 @@ const resendOtp = asyncHandler(async (req, res, next) => {
   }
 });
 
-const updateUser=asyncHandler(async (req, res, next) => {
-  const {name} = req.body;
+const updateUser = asyncHandler(async (req, res, next) => {
+  const { name } = req.body;
 
   // Validate input fields
   if ([name].some((field) => field?.trim() === "")) {
@@ -391,19 +403,21 @@ const updateUser=asyncHandler(async (req, res, next) => {
   }
 
   if (!isValidLength(name)) {
-    return next(new ErrorHandler(
-      "Name should be greater than 3 characters and less than 30 characters",
-      400
-    ));
+    return next(
+      new ErrorHandler(
+        "Name should be greater than 3 characters and less than 30 characters",
+        400
+      )
+    );
   }
 
   try {
     // Create a new user if no existing user is found
-    const [num, [user]] = await UserModel.update(
+    const [num, [updatedUser]] = await UserModel.update(
       { name },
       {
         where: {
-          id: req.user.id
+          id: req.user.id,
         },
         returning: true,
       }
@@ -412,19 +426,37 @@ const updateUser=asyncHandler(async (req, res, next) => {
     if (num === 0) {
       return res.status(400).json({
         success: false,
-        message: `Cannot update user with id=${req.user.id}. Maybe user was not found or req.body is empty!`
+        message: `Cannot update user with id=${req.user.id}. Maybe user was not found or req.body is empty!`,
       });
     }
+    // Exclude sensitive fields from the updated user object
+    const {
+      id,
+      name: updatedName,
+      email,
+      phone,
+      agreePolicy,
+      createdAt,
+      updatedAt,
+    } = updatedUser;
 
     return res.status(200).json({
       success: true,
-      message: 'User updated successfully'
+      message: "User updated successfully",
+      user: {
+        id,
+        name: updatedName,
+        email,
+        phone,
+        agreePolicy,
+        createdAt,
+        updatedAt,
+      },
     });
   } catch (error) {
     return next(new ErrorHandler(error.message, 500));
   }
 });
-
 
 module.exports = {
   registerUser,
@@ -433,5 +465,5 @@ module.exports = {
   loginUser,
   forgotPassword,
   resetPassword,
-  resendOtp
+  resendOtp,
 };
