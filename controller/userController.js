@@ -382,9 +382,53 @@ const resendOtp = asyncHandler(async (req, res, next) => {
   }
 });
 
+const updateUser=asyncHandler(async (req, res, next) => {
+  const {name} = req.body;
+
+  // Validate input fields
+  if ([name].some((field) => field?.trim() === "")) {
+    return next(new ErrorHandler("Please provide all necessary field", 400));
+  }
+
+  if (!isValidLength(name)) {
+    return next(new ErrorHandler(
+      "Name should be greater than 3 characters and less than 30 characters",
+      400
+    ));
+  }
+
+  try {
+    // Create a new user if no existing user is found
+    const [num, [user]] = await UserModel.update(
+      { name },
+      {
+        where: {
+          id: req.user.id
+        },
+        returning: true,
+      }
+    );
+
+    if (num === 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot update user with id=${req.user.id}. Maybe user was not found or req.body is empty!`
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'User updated successfully'
+    });
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
 
 module.exports = {
   registerUser,
+  updateUser,
   signUp,
   loginUser,
   forgotPassword,
