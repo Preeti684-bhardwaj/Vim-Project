@@ -7,7 +7,8 @@ const {
   forgotPassword,
   resetPassword,
   resendOtp,
-  updateUser
+  updateUser,
+  deleteUser
 } = require("../controller/userController");
 const { verifyJWt } = require("../middleware/auth");
 
@@ -21,5 +22,6 @@ router.post("/password/forgot",forgotPassword)
 router.post("/password/reset/:userId",resetPassword)
 router.post("/resendOtp",resendOtp)
 router.put('/updateUser',verifyJWt,updateUser)
+router.delete('/deleteUser',deleteUser)
 
 module.exports = router

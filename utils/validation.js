@@ -11,7 +11,7 @@ const isValidPhone = (phone) => validator.isMobilePhone(phone, "en-IN");
 
 const isValidPassword = (password) => PASSWORD_REGEX.test(password)
 
-const isValidLength = name => name.length >= 4 && name.length<=30
+const isValidLength = name => name.length >= 4 && name.length<=40 && !/^\d/.test(name)
 
 // const isDateGreterThanToday = date => moment(date).isSameOrAfter(today, "day");
 

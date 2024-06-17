@@ -12,6 +12,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const jwt = require("jsonwebtoken");
 const { sequelize } = require("../database/dbconnection");
 
+// register customer
 const registerUser = asyncHandler(async (req, res, next) => {
   const { name, phone, email, password } = req.body;
 
@@ -40,7 +41,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
   if (!isValidLength(name)) {
     return next(
       new ErrorHandler(
-        "Name should be greater than 3 characters and less than 30 characters",
+        "Name should be greater than 3 characters and less than 40 characters and should not start with number",
         400
       )
     );
@@ -237,6 +238,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
   });
 });
 
+// forget password
 const forgotPassword = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
 
@@ -290,6 +292,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
+// reset password
 const resetPassword = asyncHandler(async (req, res, next) => {
   const { password, otp } = req.body;
   const userId = req.params.userId;
@@ -340,6 +343,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
+// send OTP 
 const resendOtp = asyncHandler(async (req, res, next) => {
   const { phone } = req.body;
 
@@ -394,6 +398,7 @@ const resendOtp = asyncHandler(async (req, res, next) => {
   }
 });
 
+// Update user
 const updateUser = asyncHandler(async (req, res, next) => {
   const { name } = req.body;
 
@@ -405,7 +410,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
   if (!isValidLength(name)) {
     return next(
       new ErrorHandler(
-        "Name should be greater than 3 characters and less than 30 characters",
+        "Name should be greater than 3 characters and less than 40 characters and should not start with number",
         400
       )
     );
@@ -458,6 +463,26 @@ const updateUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+// delete customer
+const deleteUser=asyncHandler(async(req,res,next)=>{
+const {phone}=req.body;
+try {
+  const user = await UserModel.findOne({ where: { phone } });
+  console.log(user);
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      message: "User not found or invalid details.",
+    });
+  }
+  await user.destroy();
+  res.status(200).send({success:true,message:`user with phone ${user.phone} deleted successfully`})
+}catch(err){
+  return next(new ErrorHandler(err.message, 500));
+}
+
+})
+
 module.exports = {
   registerUser,
   updateUser,
@@ -466,4 +491,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   resendOtp,
+  deleteUser
 };
