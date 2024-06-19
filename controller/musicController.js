@@ -743,7 +743,7 @@ const getMusicById = asyncHandler(async (req, res, next) => {
   });
 
   if (!musicData) {
-    return next(new ErrorHandler("Video data not Found", 404));
+    return next(new ErrorHandler("Audio data not Found", 404));
   }
 
   return res.status(200).json({

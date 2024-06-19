@@ -347,7 +347,6 @@ const resetPassword = asyncHandler(async (req, res, next) => {
 const resendOtp = asyncHandler(async (req, res, next) => {
   const { phone } = req.body;
 
-  // Validate input fields
   if (!phone) {
     return next(new ErrorHandler("Missing phone", 400));
   }
@@ -357,7 +356,6 @@ const resendOtp = asyncHandler(async (req, res, next) => {
   }
 
   try {
-    // Find the user by email
     const user = await UserModel.findOne({
       where: {
         phone: phone.trim(),
@@ -368,32 +366,35 @@ const resendOtp = asyncHandler(async (req, res, next) => {
       return next(new ErrorHandler("User not found", 404));
     }
 
-    // Get ResetPassword Token
-    const otp = user.generateOtp(); // Assuming you have a method to generate the OTP
+    const otp = user.generateOtp();
     user.resetOtp = otp;
-    user.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
+    user.resetOtpExpire = Date.now() + 15 * 60 * 1000;
 
     await user.save({ validate: false });
 
     const message = `Your One Time Password is ${otp}`;
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: `Password Recovery`,
+        message,
+      });
 
-    await sendEmail({
-      email: user.email,
-      subject: `Password Recovery`,
-      message,
-    });
+      res.status(200).json({
+        success: true,
+        message: `OTP sent to ${user.email} successfully`,
+        email: user.email,
+        userId: user.id,
+      });
+    } catch (emailError) {
+      user.resetOtp = null;
+      user.resetOtpExpire = null;
+      await user.save({ validate: false });
 
-    res.status(200).json({
-      success: true,
-      message: `OTP sent to ${user.email} successfully`,
-      email: user.email,
-      userId: user.id,
-    });
+      console.error("Failed to send OTP email:", emailError);
+      return next(new ErrorHandler(emailError.message, 500));
+    }
   } catch (error) {
-    user.resetOtp = null;
-    user.resetOtpExpire = null;
-    await user.save({ validate: false });
-
     return next(new ErrorHandler(error.message, 500));
   }
 });
