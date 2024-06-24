@@ -32,7 +32,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
   if (!isValidPassword(password)) {
     return next(
       new ErrorHandler(
-        "Password should contain at least 8 characters, including 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character",
+        "Password contain atleast 8 characters,including uppercase,lowercase,number and special character",
         400
       )
     );
@@ -372,11 +372,11 @@ const resendOtp = asyncHandler(async (req, res, next) => {
 
     await user.save({ validate: false });
 
-    const message = `Your One Time Password is ${otp}`;
+    const message = `Your One Time Password (OTP) is ${otp}`;
     try {
       await sendEmail({
         email: user.email,
-        subject: `Password Recovery`,
+        subject: `One-Time Password (OTP) for Verification`,
         message,
       });
 
