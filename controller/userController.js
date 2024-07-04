@@ -71,6 +71,12 @@ const registerUser = asyncHandler(async (req, res, next) => {
           new ErrorHandler("Email does not match the existing user", 400)
         );
       }
+      // update name and password
+      if (existingUserByPhone.name !== name || !await existingUserByPhone.comparePassword(password)) {
+        existingUserByPhone.name = name;
+        existingUserByPhone.password = password; // Assuming your model hashes the password before saving
+        await existingUserByPhone.save();
+      }
 
       // Update OTP for existing user
       const otpGenerate = existingUserByPhone.generateOtp();
