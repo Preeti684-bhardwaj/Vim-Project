@@ -79,23 +79,23 @@ const registerUser = asyncHandler(async (req, res, next) => {
       }
 
       // Update OTP for existing user
-      const otpGenerate = existingUserByPhone.generateOtp();
-      existingUserByPhone.resetOtp = otpGenerate;
-      existingUserByPhone.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
-      await existingUserByPhone.save({ validate: false });
+      // const otpGenerate = existingUserByPhone.generateOtp();
+      // existingUserByPhone.resetOtp = otpGenerate;
+      // existingUserByPhone.resetOtpExpire = Date.now() + 15 * 60 * 1000; // Set OTP expiration time (e.g., 15 minutes)
+      // await existingUserByPhone.save({ validate: false });
 
-      const message = `Your One Time Password is ${otpGenerate}`;
+      // const message = `Your One Time Password is ${otpGenerate}`;
 
-      await sendEmail({
-        email: existingUserByPhone.email,
-        subject: `One Time Password (OTP)`,
-        message,
-      });
+      // await sendEmail({
+      //   email: existingUserByPhone.email,
+      //   subject: `One Time Password (OTP)`,
+      //   message,
+      // });
 
-      return res.status(200).json({
-        success: true,
-        message: `OTP sent to ${existingUserByPhone.email} successfully`,
-      });
+      // return res.status(200).json({
+      //   success: true,
+      //   message: `OTP sent to ${existingUserByPhone.email} successfully`,
+      // });
     }
 
     // Check if email already exists
