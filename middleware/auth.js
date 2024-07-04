@@ -47,7 +47,7 @@ const verifyJWt = async (req , res , next)=>{
      if(!user){
         return next(
             new ErrorHandler(
-                "Invalid Access Token",
+                "Invalid Access Token or user not found",
                 401
             )
         )
@@ -57,9 +57,11 @@ const verifyJWt = async (req , res , next)=>{
      next()
 
    } catch (error) {
+       console.log("catch auth error" , error.message)
      return next(
         new ErrorHandler(
             "Invalid Access Token",
+            error.message,
             401
         )
      )
