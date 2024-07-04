@@ -1,7 +1,7 @@
 const Music = require("../modal/musicModal.js");
 const FalseMusic=require('../modal/falseDataModal.js')
 const asyncHandler = require("../utils/asyncHandler.js");
-const ErrorHandler = require("../utils/errorHandler").ErrorHandler;
+const ErrorHandler = require("../utils/errorHandler");
 const fs = require("fs");
 const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
