@@ -99,10 +99,10 @@ const registerUser = asyncHandler(async (req, res, next) => {
     }
 
     // Check if email already exists
-    if (existingUserByEmail) {
-      // Email exists but phone does not match
-      return next(new ErrorHandler("Email already in use", 400));
-    }
+    // if (existingUserByEmail) {
+    //   // Email exists but phone does not match
+    //   return next(new ErrorHandler("Email already in use", 400));
+    // }
 
     // Create a new user if no existing user is found
     const user = await UserModel.create({
