@@ -64,6 +64,10 @@ const registerUser = asyncHandler(async (req, res, next) => {
           new ErrorHandler("User already exists and is verified", 400)
         );
       }
+      if (existingUserByPhone.email == email) {
+          // Email exists but phone does not match
+          return next(new ErrorHandler("Email already in use", 400));
+        }
 
       // Check if email matches
       if (existingUserByPhone.email !== email) {
