@@ -15,6 +15,7 @@ app.use(express.urlencoded({extended: true}))
 const userRouter = require("./routes/userRoute.js")
 const instructionRouter=require("./routes/instructionRoute.js")
 const musicRouter = require("./routes/musicRoute.js")
+const appversionRouter = require("./routes/appversionRoute.js")
 
 // app.get("/", (req,res,next)=>{
 //     return res.status(200).json({
@@ -27,6 +28,7 @@ const musicRouter = require("./routes/musicRoute.js")
 app.use("/api/v1/user", userRouter)
 app.use("/api/v1/instruction",instructionRouter)
 app.use("/api/v1/audio", musicRouter)
+app.use("/api/v1/version",appversionRouter)
 
 // Middleware for error
 app.use(errorMiddleware);
