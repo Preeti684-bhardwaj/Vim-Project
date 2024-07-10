@@ -14,11 +14,9 @@ const createAppVersion = asyncHandler(async (req, res, next) => {
   } = req.body;
 
   if (
-    [
-      update_type,
-      playstore_app_version,
-      app_store_version,
-    ].some((field) => field?.trim() == "")
+    [update_type, playstore_app_version, app_store_version].some(
+      (field) => field?.trim() == ""
+    )
   ) {
     return next(new ErrorHandler("Please provide all necessary fields", 400));
   }
@@ -54,7 +52,7 @@ const createAppVersion = asyncHandler(async (req, res, next) => {
 });
 
 const getAppVersion = asyncHandler(async (req, res, next) => {
-const appVersionData = await AppVersionModel.findOne();
+  const appVersionData = await AppVersionModel.findOne();
   if (!appVersionData) {
     return next(new ErrorHandler("app version data not found", 400));
   }
@@ -65,32 +63,14 @@ const appVersionData = await AppVersionModel.findOne();
   });
 });
 const updateAppVersion = asyncHandler(async (req, res, next) => {
-  const { app_link_android,
+  const {
+    app_link_android,
     app_link_ios,
     message,
     update_type,
     playstore_app_version,
-    app_store_version, } = req.body;
-
-    if (
-        [
-          update_type,
-          playstore_app_version,
-          app_store_version,
-        ].some((field) => field?.trim() == "")
-      ) {
-        return next(new ErrorHandler("Please provide all necessary fields", 400));
-      }
-      if (!update_type) {
-        return next(new ErrorHandler("Please provide update type", 400));
-      }
-      if (!playstore_app_version) {
-        return next(new ErrorHandler("Please provide playstore app version", 400));
-      }
-      if (!app_store_version) {
-        return next(new ErrorHandler("Please provide app store version", 400));
-      }
-
+    app_store_version,
+  } = req.body;
   try {
     // Find existing instruction data
     const appVersionInfo = await AppVersionModel.findOne();
@@ -104,10 +84,10 @@ const updateAppVersion = asyncHandler(async (req, res, next) => {
     // Update instruction data with new values
     appVersionInfo.app_link_android = app_link_android;
     appVersionInfo.app_link_ios = app_link_ios;
-    appVersionInfo.message=message
-    appVersionInfo.update_type=update_type
-    appVersionInfo.playstore_app_version=playstore_app_version
-    appVersionInfo.app_store_version=app_store_version
+    appVersionInfo.message = message;
+    appVersionInfo.update_type = update_type;
+    appVersionInfo.playstore_app_version = playstore_app_version;
+    appVersionInfo.app_store_version = app_store_version;
     // Save the updated instruction data to the database
     await appVersionInfo.save({ validate: false });
 
