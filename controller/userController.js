@@ -316,7 +316,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
       new ErrorHandler("Missing required fields: password or OTP", 400)
     );
   }
-
+  const hashedPassword = await bcrypt.hash(password, 10);
   try {
     // Find the user by ID
     const user = await UserModel.findByPk(userId);
@@ -334,7 +334,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
     }
 
     // Update the user's password and clear OTP fields
-    user.password = password;
+    user.password = hashedPassword;
     user.resetOtp = null;
     user.resetOtpExpire = null;
 
