@@ -479,7 +479,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
 
 // delete customer
 const deleteUser=asyncHandler(async(req,res,next)=>{
-const {phone}=req.body;
+const {phone}=req.query;
 try {
   const user = await UserModel.findOne({ where: { phone } });
   console.log(user);
