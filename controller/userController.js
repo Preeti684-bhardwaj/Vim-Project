@@ -10,6 +10,7 @@ const sendEmail = require("../utils/sendEmail");
 const asyncHandler = require("../utils/asyncHandler");
 // const sendEmail = require("../utils/sendEmail.js")
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const { sequelize } = require("../database/dbconnection");
 
 // register customer
