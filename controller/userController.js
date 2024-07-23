@@ -419,14 +419,10 @@ const updateUser = asyncHandler(async (req, res, next) => {
     return next(new ErrorHandler("Please provide all necessary field", 400));
   }
 
-  if (!isValidLength(name)) {
-    return next(
-      new ErrorHandler(
-        "Name should be greater than 3 characters and less than 40 characters and should not start with number",
-        400
-      )
-    );
-  }
+  const nameError = isValidLength(name);
+   if (nameError) {
+     return res.status(400).send({ success: false, message: nameError });
+   }
 
   try {
     // Create a new user if no existing user is found
