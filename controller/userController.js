@@ -39,14 +39,11 @@ const registerUser = asyncHandler(async (req, res, next) => {
     );
   }
 
-  if (!isValidLength(name)) {
-    return next(
-      new ErrorHandler(
-        "Name should be greater than 3 characters and less than 40 characters and should not start with number",
-        400
-      )
-    );
-  }
+   // Validate name
+   const nameError = isValidLength(name);
+   if (nameError) {
+     return res.status(400).send({ success: false, message: nameError });
+   }
 
   try {
     // Check if a user with the same phone or email already exists
