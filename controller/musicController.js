@@ -1,5 +1,5 @@
 const Music = require("../modal/musicModal.js");
-const FalseMusic=require('../modal/falseDataModal.js')
+const FalseMusic = require("../modal/falseDataModal.js");
 const asyncHandler = require("../utils/asyncHandler.js");
 const ErrorHandler = require("../utils/errorHandler");
 const fs = require("fs");
@@ -60,10 +60,9 @@ ffmpeg.setFfmpegPath(ffmpegPath);
 
 // Define the combination-to-audio map with .wav files
 
-
 const axisCombinationAudioMap = {
   horizontal_x_negative_vertical_y_negative:
-    "horizontal_x_negative_vertical_y_negative.mp3",//Vim-Project/public/temp/horizontal_x_negative_vertical_y_negative.mp3
+    "horizontal_x_negative_vertical_y_negative.mp3", //Vim-Project/public/temp/horizontal_x_negative_vertical_y_negative.mp3
   horizontal_x_negative_vertical_y_positive:
     "horizontal_x_negative_vertical_y_positive.mp3",
   horizontal_x_positive_horizontal_x_negative:
@@ -146,7 +145,6 @@ const getAudioDuration = (filePath) => {
   });
 };
 
-
 // const saveFalseData = async (data, errorMessage) => {
 //   try {
 //     await FalseMusic.create({
@@ -162,15 +160,14 @@ const saveFalseData = async (data, errorMessage) => {
   try {
     await FalseMusic.create({
       ...data,
-      errorMessage: errorMessage || 'Unknown error'
+      errorMessage: errorMessage || "Unknown error",
     });
   } catch (error) {
-    console.error('Failed to save false data:', error);
+    console.error("Failed to save false data:", error);
   }
 };
 
 // // Upload audio file
-
 
 // const uploadMusic = asyncHandler(async (req, res, next) => {
 //   // upload wav file
@@ -284,7 +281,7 @@ const saveFalseData = async (data, errorMessage) => {
 
 //   const { angle, gyrometer, acceleration, topTwoAxis, fileName } = req.body;
 //   console.log(req.user.id);
-  
+
 //   // Handle topTwoAxis case
 //   if (topTwoAxis) {
 //     if (!Array.isArray(topTwoAxis) || topTwoAxis.length !== 2) {
@@ -292,14 +289,14 @@ const saveFalseData = async (data, errorMessage) => {
 //         new ErrorHandler("topTwoAxis must be an array of two strings", 400)
 //       );
 //     }
-  
+
 //     const trimmedTopTwoAxis = topTwoAxis.map(axis => axis.trim());
 //     const axisCombinationKey = trimmedTopTwoAxis.join("_");
 //     const reversedAxisCombinationKey = trimmedTopTwoAxis.slice().reverse().join("_");
-    
+
 //     console.log("axisCombinationKey:", axisCombinationKey);
 //     console.log("reversedAxisCombinationKey:", reversedAxisCombinationKey);
-  
+
 //     // Check if the topTwoAxis combination already exists for the user
 //     const existingMusic = await Music.findOne({
 //       where: {
@@ -324,7 +321,7 @@ const saveFalseData = async (data, errorMessage) => {
 //         return next(new ErrorHandler("Invalid axis combination", 400));
 //       }
 //     }
-  
+
 //     try {
 //       const musicData = await Music.create({
 //         topTwoAxis: trimmedTopTwoAxis,
@@ -360,8 +357,7 @@ const saveFalseData = async (data, errorMessage) => {
 //       );
 //     }
 //   }
-  
-  
+
 //   // Upload from parameters
 //   const audio = await Music.create({
 //     angle: angle,
@@ -563,9 +559,12 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
         createdById,
         duration,
       });
-      
+
       if (!audioFile) {
-        throw new ErrorHandler("Something went wrong while creating the data", 500);
+        throw new ErrorHandler(
+          "Something went wrong while creating the data",
+          500
+        );
       }
 
       const filteredaudioFileData = {
@@ -576,7 +575,7 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
         updatedAt: audioFile.updatedAt,
         createdAt: audioFile.createdAt,
       };
-      
+
       return res.status(201).json({
         success: true,
         message: "Data Created Successfully",
@@ -586,7 +585,10 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
 
     if (topTwoAxis) {
       if (!Array.isArray(topTwoAxis) || topTwoAxis.length !== 2) {
-        throw new ErrorHandler("topTwoAxis must be an array of two strings", 400);
+        throw new ErrorHandler(
+          "topTwoAxis must be an array of two strings",
+          400
+        );
       }
 
       const trimmedTopTwoAxis = topTwoAxis.map((axis) => axis.trim());
@@ -605,13 +607,16 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
 
       let audioFileUrl;
       if (existingMusic) {
-        const availableAudioUrls = Object.values(axisCombinationAudioMap).filter(
-          (url) => url !== existingMusic.musicUrl
-        );
+        const availableAudioUrls = Object.values(
+          axisCombinationAudioMap
+        ).filter((url) => url !== existingMusic.musicUrl);
         if (availableAudioUrls.length > 0) {
           audioFileUrl = availableAudioUrls[0];
         } else {
-          throw new ErrorHandler("No available audio files for the given combination", 400);
+          throw new ErrorHandler(
+            "No available audio files for the given combination",
+            400
+          );
         }
       } else {
         audioFileUrl =
@@ -620,6 +625,17 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
         if (!audioFileUrl) {
           throw new ErrorHandler("Invalid axis combination", 400);
         }
+      }
+
+      // Check if the filename already exists
+      const existingFileName = await Music.findOne({
+        where: {
+          fileName: fileName,
+        },
+      });
+
+      if (existingFileName) {
+        throw new ErrorHandler("Filename already exists", 400);
       }
 
       const duration = await getAudioDuration(`./public/temp/${audioFileUrl}`);
@@ -632,7 +648,10 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
       });
 
       if (!musicData) {
-        throw new ErrorHandler("Something went wrong while creating the data", 500);
+        throw new ErrorHandler(
+          "Something went wrong while creating the data",
+          500
+        );
       }
 
       const filteredMusicData = {
@@ -663,7 +682,10 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
     });
 
     if (!audio) {
-      throw new ErrorHandler("Something went wrong while creating the data", 500);
+      throw new ErrorHandler(
+        "Something went wrong while creating the data",
+        500
+      );
     }
 
     const filteredAudioData = {
@@ -719,7 +741,7 @@ const getAllMusic = asyncHandler(async (req, res, next) => {
     where: {
       createdById: req.user.id,
     },
-    order: [['createdAt', 'DESC']],
+    order: [["createdAt", "DESC"]],
   });
 
   return res.status(200).json({
