@@ -409,7 +409,22 @@ const resendOtp = asyncHandler(async (req, res, next) => {
     return next(new ErrorHandler(error.message, 500));
   }
 });
-
+// getById
+const getUserById = asyncHandler(async (req, res, next) => {
+try {
+  const id = req.params.id;
+  const item = await UserModel.findByPk(id, {
+    attributes: { exclude: ["password"] },
+  });
+  if (!item) {
+    res.status(404).json({ success: false, error: "User not found" });
+  } else {
+    res.json({ success: true, data: item });
+  }
+} catch (error) {
+  return next(new ErrorHandler(error.message, 500));
+}
+})
 // Update user
 const updateUser = asyncHandler(async (req, res, next) => {
   const { name } = req.body;
@@ -496,6 +511,7 @@ module.exports = {
   updateUser,
   signUp,
   loginUser,
+  getUserById,
   forgotPassword,
   resetPassword,
   resendOtp,

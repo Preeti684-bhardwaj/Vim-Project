@@ -7,6 +7,7 @@ const {
   forgotPassword,
   resetPassword,
   resendOtp,
+  getUserById,
   updateUser,
   deleteUser
 } = require("../controller/userController");
@@ -21,6 +22,7 @@ router.post("/password/forgot",forgotPassword)
 
 router.post("/password/reset/:userId",resetPassword)
 router.post("/resendOtp",resendOtp)
+router.get("/getById/:id",getUserById)
 router.put('/updateUser',verifyJWt,updateUser)
 router.delete('/deleteUser',deleteUser)
 
