@@ -627,16 +627,16 @@ const uploadMusic = asyncHandler(async (req, res, next) => {
         }
       }
 
-      // Check if the filename already exists
-      const existingFileName = await Music.findOne({
-        where: {
-          fileName: fileName,
-        },
-      });
+      // // Check if the filename already exists
+      // const existingFileName = await Music.findOne({
+      //   where: {
+      //     fileName: fileName,
+      //   },
+      // });
 
-      if (existingFileName) {
-        throw new ErrorHandler("Filename already exists", 400);
-      }
+      // if (existingFileName) {
+      //   throw new ErrorHandler("Filename already exists", 400);
+      // }
 
       const duration = await getAudioDuration(`./public/temp/${audioFileUrl}`);
       const musicData = await Music.create({
