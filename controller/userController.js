@@ -39,11 +39,11 @@ const registerUser = asyncHandler(async (req, res, next) => {
     );
   }
 
-   // Validate name
-   const nameError = isValidLength(name);
-   if (nameError) {
-     return res.status(400).send({ success: false, message: nameError });
-   }
+  // Validate name
+  const nameError = isValidLength(name);
+  if (nameError) {
+    return res.status(400).send({ success: false, message: nameError });
+  }
 
   try {
     // Check if a user with the same phone or email already exists
@@ -63,9 +63,9 @@ const registerUser = asyncHandler(async (req, res, next) => {
         );
       }
       if (existingUserByPhone.email == email) {
-          // Email exists but phone does not match
-          return next(new ErrorHandler("Email already in use", 400));
-        }
+        // Email exists but phone does not match
+        return next(new ErrorHandler("Email already in use", 400));
+      }
 
       // Check if email matches
       if (existingUserByPhone.email !== email) {
@@ -74,7 +74,10 @@ const registerUser = asyncHandler(async (req, res, next) => {
         );
       }
       // update name and password
-      if (existingUserByPhone.name !== name || !await existingUserByPhone.comparePassword(password)) {
+      if (
+        existingUserByPhone.name !== name ||
+        !(await existingUserByPhone.comparePassword(password))
+      ) {
         existingUserByPhone.name = name;
         existingUserByPhone.password = password; // Assuming your model hashes the password before saving
         await existingUserByPhone.save();
@@ -214,7 +217,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
   const user = await UserModel.findOne({
     where: { phone: phone.trim() },
   });
-
+  console.log(user.password);
   if (!user) {
     return next(new ErrorHandler("user does not exist", 404));
   }
@@ -355,7 +358,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
-// send OTP 
+// send OTP
 const resendOtp = asyncHandler(async (req, res, next) => {
   const { phone } = req.body;
 
@@ -412,20 +415,20 @@ const resendOtp = asyncHandler(async (req, res, next) => {
 });
 // getById
 const getUserById = asyncHandler(async (req, res, next) => {
-try {
-  const id = req.params.id;
-  const item = await UserModel.findByPk(id, {
-    attributes: { exclude: ["password"] },
-  });
-  if (!item) {
-    res.status(404).json({ success: false, error: "User not found" });
-  } else {
-    res.json({ success: true, data: item });
+  try {
+    const id = req.params.id;
+    const item = await UserModel.findByPk(id, {
+      attributes: { exclude: ["password"] },
+    });
+    if (!item) {
+      res.status(404).json({ success: false, error: "User not found" });
+    } else {
+      res.json({ success: true, data: item });
+    }
+  } catch (error) {
+    return next(new ErrorHandler(error.message, 500));
   }
-} catch (error) {
-  return next(new ErrorHandler(error.message, 500));
-}
-})
+});
 // Update user
 const updateUser = asyncHandler(async (req, res, next) => {
   const { name } = req.body;
@@ -436,9 +439,9 @@ const updateUser = asyncHandler(async (req, res, next) => {
   }
 
   const nameError = isValidLength(name);
-   if (nameError) {
-     return res.status(400).send({ success: false, message: nameError });
-   }
+  if (nameError) {
+    return res.status(400).send({ success: false, message: nameError });
+  }
 
   try {
     // Create a new user if no existing user is found
@@ -488,24 +491,28 @@ const updateUser = asyncHandler(async (req, res, next) => {
 });
 
 // delete customer
-const deleteUser=asyncHandler(async(req,res,next)=>{
-const {phone}=req.query;
-try {
-  const user = await UserModel.findOne({ where: { phone } });
-  console.log(user);
-  if (!user) {
-    return res.status(400).json({
-      success: false,
-      message: "User not found or invalid details.",
-    });
+const deleteUser = asyncHandler(async (req, res, next) => {
+  const { phone } = req.query;
+  try {
+    const user = await UserModel.findOne({ where: { phone } });
+    console.log(user);
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "User not found or invalid details.",
+      });
+    }
+    await user.destroy();
+    res
+      .status(200)
+      .send({
+        success: true,
+        message: `user with phone ${user.phone} deleted successfully`,
+      });
+  } catch (err) {
+    return next(new ErrorHandler(err.message, 500));
   }
-  await user.destroy();
-  res.status(200).send({success:true,message:`user with phone ${user.phone} deleted successfully`})
-}catch(err){
-  return next(new ErrorHandler(err.message, 500));
-}
-
-})
+});
 
 module.exports = {
   registerUser,
@@ -516,5 +523,5 @@ module.exports = {
   forgotPassword,
   resetPassword,
   resendOtp,
-  deleteUser
+  deleteUser,
 };
