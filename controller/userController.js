@@ -217,13 +217,18 @@ const loginUser = asyncHandler(async (req, res, next) => {
   const user = await UserModel.findOne({
     where: { phone: phone.trim() },
   });
-  console.log(user.password);
   if (!user) {
-    return next(new ErrorHandler("user does not exist", 404));
+    return next(new ErrorHandler("User does not exist", 404));
   }
 
-  const isPasswordMatched = await user.comparePassword(password);
-  console.log(isPasswordMatched);
+  // Log the hashed password from the database
+  console.log("Stored hash from DB:", user.password);
+
+  // Log the plain password
+  console.log("Incoming plain password:", password);
+
+  const isPasswordMatched = await bcrypt.compare(password, user.password);
+  console.log("Password match result:", isPasswordMatched);
 
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid password", 401));
@@ -318,7 +323,7 @@ const resetPassword = asyncHandler(async (req, res, next) => {
       new ErrorHandler("Missing required fields: password or OTP", 400)
     );
   }
-  const hashedPassword = await bcrypt.hash(password, 10);
+
   try {
     // Find the user by ID
     const user = await UserModel.findByPk(userId);
@@ -332,11 +337,11 @@ const resetPassword = asyncHandler(async (req, res, next) => {
       return next(new ErrorHandler("Invalid OTP", 400));
     }
     if (user.resetOtpExpire < Date.now()) {
-      return next(new ErrorHandler("expired OTP", 400));
+      return next(new ErrorHandler("Expired OTP", 400));
     }
 
     // Update the user's password and clear OTP fields
-    user.password = hashedPassword;
+    user.password = password;
     user.resetOtp = null;
     user.resetOtpExpire = null;
 
@@ -503,12 +508,10 @@ const deleteUser = asyncHandler(async (req, res, next) => {
       });
     }
     await user.destroy();
-    res
-      .status(200)
-      .send({
-        success: true,
-        message: `user with phone ${user.phone} deleted successfully`,
-      });
+    res.status(200).send({
+      success: true,
+      message: `user with phone ${user.phone} deleted successfully`,
+    });
   } catch (err) {
     return next(new ErrorHandler(err.message, 500));
   }
