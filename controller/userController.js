@@ -61,7 +61,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
       ) {
         return res.status(400).send({
           success: false,
-          message: "Both email and phone number are already in use",
+          message: "Account already exists",
         });
       } else if (existingUser.email.toLowerCase() === email.toLowerCase()) {
         return res
