@@ -220,6 +220,7 @@ const loginUser = asyncHandler(async (req, res, next) => {
   }
 
   const isPasswordMatched = await user.comparePassword(password);
+  console.log(isPasswordMatched);
 
   if (!isPasswordMatched) {
     return next(new ErrorHandler("Invalid password", 401));
