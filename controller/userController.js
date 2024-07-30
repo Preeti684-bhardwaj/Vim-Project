@@ -9,6 +9,7 @@ const {
 const sendEmail = require("../utils/sendEmail");
 const asyncHandler = require("../utils/asyncHandler");
 // const sendEmail = require("../utils/sendEmail.js")
+const { Op } = require("sequelize");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { sequelize } = require("../database/dbconnection");
@@ -46,31 +47,37 @@ const registerUser = asyncHandler(async (req, res, next) => {
   }
 
   try {
-    // Check if a user with the same phone or email already exists
-    const existingUserByPhone = await UserModel.findOne({
-      where: { phone: phone.trim() },
-    });
+    const existingUser = await UserModel.findOne(
+      {
+        where: {
+          [Op.or]: [{ email: email.toLowerCase() }, { phone: phone }],
+        },
+      });
 
-    const existingUserByEmail = await UserModel.findOne({
-      where: { email: email.trim() },
-    });
-
+    if (existingUser) {
+      if (
+        existingUser.email.toLowerCase() === email.toLowerCase() &&
+        existingUser.phone === phone
+      ) {
+        return res.status(400).send({
+          success: false,
+          message: "Both email and phone number are already in use",
+        });
+      } else if (existingUser.email.toLowerCase() === email.toLowerCase()) {
+        return res
+          .status(400)
+          .send({ success: false, message: "Email already in use" });
+      } else {
+        return res
+          .status(400)
+          .send({ success: false, message: "Phone number already in use" });
+      }
+    }
     // Check if phone already exists
-    if (existingUserByPhone) {
-      if (existingUserByPhone.isVerified) {
+    if (existingUser) {
+      if (existingUser.isVerified) {
         return next(
           new ErrorHandler("User already exists and is verified", 400)
-        );
-      }
-      if (existingUserByPhone.email == email) {
-        // Email exists but phone does not match
-        return next(new ErrorHandler("Email already in use", 400));
-      }
-
-      // Check if email matches
-      if (existingUserByPhone.email !== email) {
-        return next(
-          new ErrorHandler("Email does not match the existing user", 400)
         );
       }
       // update name and password
