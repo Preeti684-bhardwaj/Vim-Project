@@ -43,7 +43,7 @@ const registerCustomer = asyncHandler(async (req, res, next) => {
 
     if (existingUser) {
      // If user exists, generate a new access token and return
-     const accessToken = await user.generateAccessToken();
+     const accessToken = await existingUser.generateAccessToken();
      const user = await UserModel.findByPk(existingUser.id, {
       attributes: {
         exclude: ["password", "resetOtp", "resetOtpExpire", "isVerified","email","phone","agreePolicy"],
