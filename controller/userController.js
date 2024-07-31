@@ -538,10 +538,10 @@ const updateUser = asyncHandler(async (req, res, next) => {
       { name },
       {
         where: {
-          id: req.user.id,
+          [Op.or]: [{id: req.user.id }, { unique_id: req.user.id }],
         },
         returning: true,
-      }
+      },
     );
 
     if (num === 0) {
