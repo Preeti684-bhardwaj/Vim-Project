@@ -6,6 +6,7 @@ const {
   isValidPassword,
   isValidLength,
 } = require("../utils/validation");
+const { validate: isUuid } = require('uuid');
 const sendEmail = require("../utils/sendEmail");
 const asyncHandler = require("../utils/asyncHandler");
 // const sendEmail = require("../utils/sendEmail.js")
@@ -13,6 +14,80 @@ const { Op } = require("sequelize");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { sequelize } = require("../database/dbconnection");
+
+// register customer with UUID
+const registerCustomer = asyncHandler(async (req, res, next) => {
+  const { name, uuid } = req.body;
+  if (!name) {
+    return next(new ErrorHandler("name is missing", 400));
+  }
+  if (!uuid) {
+    return next(new ErrorHandler("UUID is missing", 400));
+  }
+
+  // Validate input fields
+  if ([name, uuid].some((field) => field?.trim() === "")) {
+    return next(new ErrorHandler("Please provide all necessary fields", 400));
+  }
+
+  // Validate name
+  const nameError = isValidLength(name);
+  if (nameError) {
+    return res.status(400).send({ success: false, message: nameError });
+  }
+  // Validate UUID
+  if (!isUuid(uuid)) {
+    return res.status(400).send({ success: false, message: "Invalid UUID" });
+  }
+  try {
+    const existingUser = await UserModel.findOne({
+      where: {
+        uuid: uuid,
+      },
+    });
+
+    if (existingUser) {
+      return res.status(400).send({
+        success: false,
+        message: "Account already exists",
+      });
+    }
+    // Create a new user if no existing user is found
+    const user = await UserModel.create({
+      name,
+      uuid:uuid
+    });
+    const accessToken = await user.generateAccessToken();
+
+    const createdUser = await UserModel.findByPk(user.id, {
+      attributes: {
+        exclude: ["password", "resetOtp", "resetOtpExpire", "isVerified"],
+      },
+    });
+
+    if (!createdUser) {
+      return next(
+        new ErrorHandler("Something went wrong while registering the user", 500)
+      );
+    }
+    res.status(200).json({
+      success: true,
+      message: "user registered successfully",
+      data:createdUser,
+      token:accessToken
+    });
+  } catch (error) {
+    if (error.name === "SequelizeUniqueConstraintError") {
+      return next(
+        new ErrorHandler(
+          "User already exists with the provided phone or email",
+          409
+        )
+      );
+    }
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
 
 // register customer
 const registerUser = asyncHandler(async (req, res, next) => {
@@ -47,12 +122,11 @@ const registerUser = asyncHandler(async (req, res, next) => {
   }
 
   try {
-    const existingUser = await UserModel.findOne(
-      {
-        where: {
-          [Op.or]: [{ email: email.toLowerCase() }, { phone: phone }],
-        },
-      });
+    const existingUser = await UserModel.findOne({
+      where: {
+        [Op.or]: [{ email: email.toLowerCase() }, { phone: phone }],
+      },
+    });
 
     if (existingUser) {
       if (
@@ -525,6 +599,7 @@ const deleteUser = asyncHandler(async (req, res, next) => {
 });
 
 module.exports = {
+  registerCustomer,
   registerUser,
   updateUser,
   signUp,

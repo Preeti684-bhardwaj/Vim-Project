@@ -3,6 +3,7 @@ const router = express.Router()
 const {
   loginUser,
   signUp,
+  registerCustomer,
   registerUser,
   forgotPassword,
   resetPassword,
@@ -13,7 +14,7 @@ const {
 } = require("../controller/userController");
 const { verifyJWt } = require("../middleware/auth");
 
-router.post("/register",registerUser)
+router.post("/register",registerCustomer)
 router.post("/signUp", signUp)
 
 router.post("/login",loginUser)

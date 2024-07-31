@@ -11,74 +11,31 @@ const UserModel = sequelize.define(
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: {
-          msg: "Name is Mandatory",
-        },
-        len: {
-          args: [4, 30],
-          msg: "Name Should be greater than 4 character and less than 30 character",
-        },
-      },
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: {
-          msg: "email is Mandatory",
-        },
-      },
-    },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: {
-          msg: "Phone is Mandatory",
-        },
-      },
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: {
-          msg: "Password is Mandatory",
-        },
-      },
-    },
-    resetOtp: {
-      type: DataTypes.STRING,
-    },
-    resetOtpExpire: {
-      type: DataTypes.DATE,
-    },
-    agreePolicy: {
-      type: DataTypes.BOOLEAN,
-      // allowNull: false,
-      defaultValue: false,
-    },
+    uuid:DataTypes.UUID,
+    name: DataTypes.STRING,
+    email: DataTypes.STRING,
+    phone: DataTypes.STRING,
+    password: DataTypes.STRING,
+    resetOtp: DataTypes.STRING,
+    resetOtpExpire: DataTypes.DATE,
+    agreePolicy: DataTypes.BOOLEAN,
     isVerified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
   },
-  {
-    hooks: {
-      beforeCreate: async (user) => {
-        user.password = await bcrypt.hash(user.password, 10);
-      },
-      beforeUpdate: async (user) => {
-        if (user.changed("password")) {
-          user.password = await bcrypt.hash(user.password, 10);
-        }
-      },
-    },
-  }
+  // {
+  //   hooks: {
+  //     beforeCreate: async (user) => {
+  //       user.password = await bcrypt.hash(user.password, 10);
+  //     },
+  //     beforeUpdate: async (user) => {
+  //       if (user.changed("password")) {
+  //         user.password = await bcrypt.hash(user.password, 10);
+  //       }
+  //     },
+  //   },
+  // }
 );
 
 UserModel.prototype.generateOtp = function () {
@@ -105,7 +62,7 @@ UserModel.prototype.comparePassword = async function (password) {
 UserModel.prototype.generateAccessToken = function () {
   return jwt.sign(
     {
-      id: this.id,
+      id: this.uuid,
       //   isAdmin: this.type
     },
     process.env.JWT_SECRET,
