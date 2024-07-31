@@ -11,7 +11,10 @@ const UserModel = sequelize.define(
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4,
     },
-    uuid:DataTypes.UUID,
+    unique_id: {
+      type: DataTypes.STRING,
+      // allowNull: false,
+    },
     name: DataTypes.STRING,
     email: DataTypes.STRING,
     phone: DataTypes.STRING,
@@ -23,7 +26,7 @@ const UserModel = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-  },
+  }
   // {
   //   hooks: {
   //     beforeCreate: async (user) => {

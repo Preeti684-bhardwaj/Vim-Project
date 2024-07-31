@@ -6,7 +6,6 @@ const {
   isValidPassword,
   isValidLength,
 } = require("../utils/validation");
-const { validate: isUuid } = require('uuid');
 const sendEmail = require("../utils/sendEmail");
 const asyncHandler = require("../utils/asyncHandler");
 // const sendEmail = require("../utils/sendEmail.js")
@@ -17,16 +16,16 @@ const { sequelize } = require("../database/dbconnection");
 
 // register customer with UUID
 const registerCustomer = asyncHandler(async (req, res, next) => {
-  const { name, uuid } = req.body;
+  const { name, unique_id } = req.body;
   if (!name) {
     return next(new ErrorHandler("name is missing", 400));
   }
-  if (!uuid) {
+  if (!unique_id) {
     return next(new ErrorHandler("UUID is missing", 400));
   }
 
   // Validate input fields
-  if ([name, uuid].some((field) => field?.trim() === "")) {
+  if ([name, unique_id].some((field) => field?.trim() === "")) {
     return next(new ErrorHandler("Please provide all necessary fields", 400));
   }
 
@@ -35,14 +34,10 @@ const registerCustomer = asyncHandler(async (req, res, next) => {
   if (nameError) {
     return res.status(400).send({ success: false, message: nameError });
   }
-  // Validate UUID
-  if (!isUuid(uuid)) {
-    return res.status(400).send({ success: false, message: "Invalid UUID" });
-  }
   try {
     const existingUser = await UserModel.findOne({
       where: {
-        uuid: uuid,
+        unique_id: unique_id,
       },
     });
 
@@ -55,13 +50,13 @@ const registerCustomer = asyncHandler(async (req, res, next) => {
     // Create a new user if no existing user is found
     const user = await UserModel.create({
       name,
-      uuid:uuid
+      unique_id:unique_id
     });
     const accessToken = await user.generateAccessToken();
 
     const createdUser = await UserModel.findByPk(user.id, {
       attributes: {
-        exclude: ["password", "resetOtp", "resetOtpExpire", "isVerified"],
+        exclude: ["password", "resetOtp", "resetOtpExpire", "isVerified","email","phone","agreePolicy"],
       },
     });
 
