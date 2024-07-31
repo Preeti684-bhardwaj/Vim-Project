@@ -42,10 +42,19 @@ const registerCustomer = asyncHandler(async (req, res, next) => {
     });
 
     if (existingUser) {
-      return res.status(400).send({
-        success: false,
-        message: "Account already exists",
-      });
+     // If user exists, generate a new access token and return
+     const accessToken = await user.generateAccessToken();
+     const user = await UserModel.findByPk(user.id, {
+      attributes: {
+        exclude: ["password", "resetOtp", "resetOtpExpire", "isVerified","email","phone","agreePolicy"],
+      },
+    });
+     return res.status(200).json({
+       success: true,
+       message: "User already exists",
+       data: user,
+       token: accessToken,
+     });
     }
     // Create a new user if no existing user is found
     const user = await UserModel.create({
