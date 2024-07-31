@@ -65,7 +65,7 @@ UserModel.prototype.comparePassword = async function (password) {
 UserModel.prototype.generateAccessToken = function () {
   return jwt.sign(
     {
-      id: this.uuid,
+      id: this.unique_id,
       //   isAdmin: this.type
     },
     process.env.JWT_SECRET,
