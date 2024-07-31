@@ -29,7 +29,7 @@ const verifyJWt = async (req, res, next) => {
       where: { unique_id: userId },
       attributes: { exclude: ["password"] },
     });
-
+// console.log(user);
     if (!user) {
       return next(
         new ErrorHandler("Invalid Access Token or user not found", 401)

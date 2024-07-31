@@ -538,7 +538,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
       { name },
       {
         where: {
-          [Op.or]: [{id: req.user.id }, { unique_id: req.user.id }],
+          [Op.or]: [{id: req.user.id }, { unique_id: req.user.unique_id }],
         },
         returning: true,
       },
