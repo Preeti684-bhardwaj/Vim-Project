@@ -26,7 +26,7 @@ const verifyJWt = async (req, res, next) => {
 
     // Find the user by UUID
     const user = await User.findOne({
-      where: { uuid: userId },
+      where: { unique_id: userId },
       attributes: { exclude: ["password"] },
     });
 
