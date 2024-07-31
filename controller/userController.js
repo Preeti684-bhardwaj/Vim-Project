@@ -42,29 +42,48 @@ const registerCustomer = asyncHandler(async (req, res, next) => {
     });
 
     if (existingUser) {
-     // If user exists, generate a new access token and return
-     const accessToken = await existingUser.generateAccessToken();
-     const user = await UserModel.findByPk(existingUser.id, {
-      attributes: {
-        exclude: ["password", "resetOtp", "resetOtpExpire", "isVerified","email","phone","agreePolicy"],
-      },
-    });
-     return res.status(200).json({
-       success: true,
-       data: user,
-       token: accessToken,
-     });
+      // If user exists, generate a new access token and return
+      existingUser.name = name;
+      await existingUser.save();
+      const accessToken = await existingUser.generateAccessToken();
+
+      const user = await UserModel.findByPk(existingUser.id, {
+        attributes: {
+          exclude: [
+            "password",
+            "resetOtp",
+            "resetOtpExpire",
+            "isVerified",
+            "email",
+            "phone",
+            "agreePolicy",
+          ],
+        },
+      });
+      return res.status(200).json({
+        success: true,
+        data: user,
+        token: accessToken,
+      });
     }
     // Create a new user if no existing user is found
     const user = await UserModel.create({
       name,
-      unique_id:unique_id
+      unique_id: unique_id,
     });
     const accessToken = await user.generateAccessToken();
 
     const createdUser = await UserModel.findByPk(user.id, {
       attributes: {
-        exclude: ["password", "resetOtp", "resetOtpExpire", "isVerified","email","phone","agreePolicy"],
+        exclude: [
+          "password",
+          "resetOtp",
+          "resetOtpExpire",
+          "isVerified",
+          "email",
+          "phone",
+          "agreePolicy",
+        ],
       },
     });
 
@@ -76,8 +95,8 @@ const registerCustomer = asyncHandler(async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "user registered successfully",
-      data:createdUser,
-      token:accessToken
+      data: createdUser,
+      token: accessToken,
     });
   } catch (error) {
     if (error.name === "SequelizeUniqueConstraintError") {
@@ -538,10 +557,10 @@ const updateUser = asyncHandler(async (req, res, next) => {
       { name },
       {
         where: {
-          [Op.or]: [{id: req.user.id }, { unique_id: req.user.unique_id }],
+          [Op.or]: [{ id: req.user.id }, { unique_id: req.user.unique_id }],
         },
         returning: true,
-      },
+      }
     );
 
     if (num === 0) {
